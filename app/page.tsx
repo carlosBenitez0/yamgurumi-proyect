@@ -1,10 +1,8 @@
-import Navbar from "@/components/layout/Navbar";
 import Hero3D from "@/components/Hero3D";
 import CategoryGrid from "@/components/sections/CategoryGrid";
 import BestSellers from "@/components/sections/BestSellers";
 import ProcessSteps from "@/components/sections/ProcessSteps";
 import Newsletter from "@/components/sections/Newsletter";
-import Footer from "@/components/layout/Footer";
 import SectionWrapper from "@/components/ui/SectionWrapper";
 import { YarnThread, CrochetHook } from "@/components/ui/CraftBackground";
 
@@ -20,7 +18,6 @@ const trustBadges = [
 export default function Home() {
   return (
     <>
-      <Navbar />
       <main className="w-full overflow-x-hidden min-h-screen">
         {/* === HERO SECTION === */}
         <SectionWrapper
@@ -123,7 +120,6 @@ export default function Home() {
         <ProcessSteps />
         <Newsletter />
       </main>
-      <Footer />
     </>
   );
 }

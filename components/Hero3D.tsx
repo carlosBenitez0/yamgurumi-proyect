@@ -1,8 +1,9 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import * as THREE from "three";
+import { MdAutoFixHigh } from "react-icons/md";
 
 // ─── Palette ─────────────────────────────────────────────
 const COLORS = {
@@ -409,13 +410,46 @@ function AmbientRing() {
 
 // ─── Main Export ────────────────────────────────────────
 export default function Hero3D() {
+  const [loaded, setLoaded] = useState(false);
+  const [fadeIn, setFadeIn] = useState(false);
+
+  useEffect(() => {
+    if (loaded) {
+      // Small delay to ensure first frame rendered before fading in
+      const t = setTimeout(() => setFadeIn(true), 150);
+      return () => clearTimeout(t);
+    }
+  }, [loaded]);
+
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      <div className="soft-float w-full h-full">
+      {/* Loader while Three.js initializes */}
+      {!fadeIn && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 transition-opacity duration-500">
+          <div className="relative w-14 h-14">
+            <div className="absolute inset-0 rounded-full border-[3px] border-secondary/20" />
+            <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-secondary animate-spin" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <MdAutoFixHigh className="text-secondary text-lg animate-pulse" />
+            </div>
+          </div>
+          <span className="font-body text-[11px] text-on-surface-variant/60 tracking-wider uppercase">
+            Tejiendo...
+          </span>
+        </div>
+      )}
+
+      {/* Canvas container with entrance animation */}
+      <div
+        className={`soft-float w-full h-full transition-all duration-700 ease-out ${
+          fadeIn ? "opacity-100 scale-100" : "opacity-0 scale-95"
+        }`}
+      >
         <Canvas
           camera={{ position: [0, 0.5, 8.5], fov: 55 }}
           gl={{ antialias: true, alpha: true }}
           style={{ background: "transparent", overflow: "visible" }}
+          onCreated={() => setLoaded(true)}
         >
           {/* Lighting */}
           <ambientLight intensity={0.6} />

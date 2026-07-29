@@ -411,6 +411,15 @@
   }
 }
 
+/* === Scrollbar Hide === */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* === Layout System === */
 /*
  * Estrategia de centrado profesional:

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Comfortaa, Manrope } from "next/font/google";
 import "./globals.css";
+import Footer from "@/components/layout/Footer";
+import Navbar from "@/components/layout/Navbar";
 
 const comfortaa = Comfortaa({
   subsets: ["latin"],
@@ -33,7 +35,9 @@ export default function RootLayout({
       <head>
       </head>
       <body className="bg-background text-on-surface antialiased overflow-x-hidden w-full">
+        <Navbar />
         {children}
+        <Footer />
       </body>
     </html>
   );

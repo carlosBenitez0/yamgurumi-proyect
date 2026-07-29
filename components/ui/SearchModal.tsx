@@ -181,10 +181,10 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
       const item = allItems[index];
       if (item.type === "product" && item.product) {
         saveRecentSearch(query);
-        navigateTo(`/catalogo?producto=${item.product.slug}`);
+        navigateTo(`/producto/${item.product.slug}`);
       } else if (item.type === "category" && item.category) {
         saveRecentSearch(query);
-        navigateTo(`/catalogo?categoria=${item.category.name}`);
+        navigateTo(`/categoria/${item.category.name}`);
       }
     },
     [allItems, totalItems, query, navigateTo]
@@ -193,7 +193,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const submitQuery = useCallback(() => {
     if (!query.trim()) return;
     saveRecentSearch(query.trim());
-    navigateTo(`/catalogo?q=${encodeURIComponent(query.trim())}`);
+    navigateTo(`/?q=${encodeURIComponent(query.trim())}`);
   }, [query, navigateTo]);
 
   /* ── Keyboard ────────────────────────────────────────── */
@@ -421,7 +421,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                               data-result-index={itemIndex}
                               onClick={() => {
                                 saveRecentSearch(query);
-                                navigateTo(`/catalogo?categoria=${cat.name}`);
+                                navigateTo(`/categoria/${cat.name}`);
                               }}
                               onMouseEnter={() => setActiveIndex(itemIndex)}
                               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors duration-150 ${
@@ -466,7 +466,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                               data-result-index={itemIndex}
                               onClick={() => {
                                 saveRecentSearch(query);
-                                navigateTo(`/catalogo?producto=${product.slug}`);
+                                navigateTo(`/producto/${product.slug}`);
                               }}
                               onMouseEnter={() => setActiveIndex(itemIndex)}
                               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors duration-150 ${

@@ -1,13 +1,10 @@
 import Link from "next/link";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 import SectionWrapper from "@/components/ui/SectionWrapper";
 import { MdHome, MdStorefront } from "react-icons/md";
 
 export default function NotFound() {
   return (
     <>
-      <Navbar />
       <main className="w-full overflow-hidden min-h-screen relative bg-surface flex flex-col justify-between">
         {/* Ambient Background Globs */}
         <div className="absolute top-1/4 left-1/4 w-[25rem] h-[25rem] bg-primary-container/40 rounded-full blur-[120px] -z-10 animate-pulse" />
@@ -50,7 +47,7 @@ export default function NotFound() {
                 <span className="text-lg">Volver al Inicio</span>
               </Link>
               <Link
-                href="/catalogo"
+                href="/"
                 className="inline-flex items-center justify-center gap-3 border-2 border-outline-variant text-on-surface-variant font-bold rounded-full hover:bg-surface-container hover:text-on-surface active:scale-95 transition-all text-lg"
                 style={{ padding: "16px 32px" }}
               >
@@ -61,7 +58,6 @@ export default function NotFound() {
           </div>
         </SectionWrapper>
       </main>
-      <Footer />
     </>
   );
 }
