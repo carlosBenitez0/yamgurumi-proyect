@@ -10,7 +10,7 @@ import SearchModal from "@/components/ui/SearchModal";
 
 const navLinks = [
   { label: "Inicio", href: "/" },
-  { label: "Catálogo", href: "/#tienda" },
+  { label: "Catálogo", href: "/catalog" },
   { label: "Nuestra Historia", href: "/historia" },
 ];
 
