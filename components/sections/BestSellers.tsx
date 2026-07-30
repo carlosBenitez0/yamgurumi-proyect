@@ -110,7 +110,7 @@ export default function BestSellers() {
               </button>
             ))}
             <Link
-              href="/catalogo"
+              href="/catalog"
               className="px-3 py-2 rounded-full text-sm font-semibold transition-all duration-200 bg-surface-container-lowest text-on-surface-variant hover:bg-secondary-container/40 border border-dashed border-primary-container/30 flex items-center gap-1"
             >
               +{extraCategories.length} más
@@ -192,7 +192,7 @@ export default function BestSellers() {
 
           {/* "Ver más" card */}
           <Link
-            href="/catalogo"
+            href="/catalog"
             className="flex-shrink-0 w-[200px] group/card last:mr-0"
           >
             <div className="h-full bg-surface-container-lowest/60 rounded-3xl border-2 border-dashed border-primary-container/30 flex flex-col items-center justify-center gap-3 p-6 transition-all duration-300 hover:border-secondary/40 hover:bg-surface-container-lowest/90 hover:shadow-card">
@@ -283,7 +283,7 @@ export default function BestSellers() {
         {/* "Ver más" card - desktop */}
         <ScrollReveal delay={5}>
           <Link
-            href="/catalogo"
+            href="/catalog"
             className="block h-full group/card"
           >
             <div className="h-full bg-surface-container-lowest/60 rounded-3xl border-2 border-dashed border-primary-container/30 flex flex-col items-center justify-center gap-2 p-4 transition-all duration-300 hover:border-secondary/40 hover:bg-surface-container-lowest/90 hover:shadow-card">

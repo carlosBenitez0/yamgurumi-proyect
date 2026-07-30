@@ -110,7 +110,7 @@ export default function CategoryGrid() {
           {/* "Ver más" card */}
           <ScrollReveal delay={5}>
             <Link
-              href="/catalogo"
+              href="/catalog"
               className="block h-full group/card"
             >
               <div className="h-full bg-surface-container-lowest/60 rounded-3xl border-2 border-dashed border-primary-container/30 flex flex-col items-center justify-center gap-2 p-4 transition-all duration-300 hover:border-secondary/40 hover:bg-surface-container-lowest/90 hover:shadow-card aspect-[4/5] sm:aspect-square">
