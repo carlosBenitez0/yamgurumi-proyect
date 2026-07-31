@@ -8,6 +8,39 @@ interface ScrollRevealProps {
   delay?: number;
 }
 
+/* ── Shared IntersectionObserver ──────────────────────────
+ * Un solo observer para todos los elementos: evita crear un
+ * observer por card (40+ en el catálogo).
+ */
+
+let sharedObserver: IntersectionObserver | null = null;
+const registry = new Map<Element, () => void>();
+
+function getSharedObserver(): IntersectionObserver | null {
+  if (typeof IntersectionObserver === "undefined") return null;
+
+  if (!sharedObserver) {
+    sharedObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const reveal = registry.get(entry.target);
+            if (reveal) {
+              reveal();
+              registry.delete(entry.target);
+              sharedObserver?.unobserve(entry.target);
+            }
+          }
+        }
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" },
+    );
+  }
+  return sharedObserver;
+}
+
+/* ── Component ──────────────────────────────────────────── */
+
 export default function ScrollReveal({
   children,
   className = "",
@@ -34,21 +67,18 @@ export default function ScrollReveal({
         return;
       }
 
-      // Solo crear observer si está fuera del viewport
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setRevealed(true);
-            observer.unobserve(el);
-          }
-        },
-        { threshold: 0.15, rootMargin: "0px 0px -40px 0px" },
-      );
-
-      observer.observe(el);
+      // Fuera del viewport: registrarse en el observer compartido
+      registry.set(el, () => setRevealed(true));
+      getSharedObserver()?.observe(el);
     });
 
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      if (el) {
+        registry.delete(el);
+        sharedObserver?.unobserve(el);
+      }
+    };
   }, []);
 
   const delayStyle =

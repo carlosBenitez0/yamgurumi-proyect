@@ -74,7 +74,6 @@ export default function CatalogClient() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const gridRef = useRef<HTMLDivElement>(null);
 
   /* ── State from URL ──────────────────────────────────── */
 
@@ -92,7 +91,7 @@ export default function CatalogClient() {
 
   /* ── Sync state → URL ────────────────────────────────── */
 
-  const syncUrl = useCallback(
+  const buildUrl = useCallback(
     (params: { q?: string; category?: string; sort?: string }) => {
       const sp = new URLSearchParams(searchParams.toString());
       Object.entries(params).forEach(([key, val]) => {
@@ -100,9 +99,26 @@ export default function CatalogClient() {
         else sp.delete(key);
       });
       const qs = sp.toString();
-      router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+      return `${pathname}${qs ? `?${qs}` : ""}`;
     },
-    [searchParams, pathname, router]
+    [searchParams, pathname]
+  );
+
+  // Acciones discretas (filtro, sort): crean entrada en el historial
+  // para que "atrás/adelante" del navegador funcione.
+  const pushUrl = useCallback(
+    (params: { q?: string; category?: string; sort?: string }) => {
+      router.push(buildUrl(params), { scroll: false });
+    },
+    [buildUrl, router]
+  );
+
+  // Tecleo de búsqueda: reemplaza la URL sin spamear el historial.
+  const replaceUrl = useCallback(
+    (params: { q?: string; category?: string; sort?: string }) => {
+      router.replace(buildUrl(params), { scroll: false });
+    },
+    [buildUrl, router]
   );
 
   /* ── Filtered & sorted products ───────────────────────── */
@@ -146,27 +162,27 @@ export default function CatalogClient() {
       const next = cat === activeCategory ? "" : cat;
       setActiveCategory(next);
       setVisibleCount(INITIAL_VISIBLE);
-      syncUrl({ category: next || undefined });
+      pushUrl({ category: next || undefined });
     },
-    [activeCategory, syncUrl]
+    [activeCategory, pushUrl]
   );
 
   const handleSearchChange = useCallback(
     (value: string) => {
       setSearchQuery(value);
       setVisibleCount(INITIAL_VISIBLE);
-      syncUrl({ q: value.trim() || undefined });
+      replaceUrl({ q: value.trim() || undefined });
     },
-    [syncUrl]
+    [replaceUrl]
   );
 
   const handleSortChange = useCallback(
     (opt: SortOption) => {
       setSortOption(opt);
       setShowSortDropdown(false);
-      syncUrl({ sort: opt === "default" ? undefined : opt });
+      pushUrl({ sort: opt === "default" ? undefined : opt });
     },
-    [syncUrl]
+    [pushUrl]
   );
 
   const handleLoadMore = useCallback(() => {
@@ -197,10 +213,10 @@ export default function CatalogClient() {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
         setVisibleCount(INITIAL_VISIBLE);
-        syncUrl({ q: v.trim() || undefined });
+        replaceUrl({ q: v.trim() || undefined });
       }, 200);
     },
-    [syncUrl]
+    [replaceUrl]
   );
 
   /* ── Close sort dropdown on outside click ─────────────── */
@@ -219,6 +235,28 @@ export default function CatalogClient() {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, []);
+
+  /* ── Sync URL → state (back/forward navigation) ───────── */
+
+  const prevUrlQuery = useRef(urlQuery);
+  const prevUrlCategory = useRef(urlCategory);
+
+  useEffect(() => {
+    const q = searchParams.get("q") || "";
+    const cat = searchParams.get("category") || "";
+    const sort = (searchParams.get("sort") as SortOption) || "default";
+
+    // Reiniciar paginación solo si cambió la búsqueda o categoría
+    if (q !== prevUrlQuery.current || cat !== prevUrlCategory.current) {
+      setVisibleCount(INITIAL_VISIBLE);
+    }
+    prevUrlQuery.current = q;
+    prevUrlCategory.current = cat;
+
+    setSearchQuery(q);
+    setActiveCategory(cat);
+    setSortOption(sort);
+  }, [searchParams]);
 
   /* ── Render ───────────────────────────────────────────── */
 
@@ -248,7 +286,7 @@ export default function CatalogClient() {
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-headline font-bold text-on-surface leading-tight">
                   Todos los Amigurumis
                 </h1>
-                <p className="text-on-surface-variant font-body text-body-md mt-1.5">
+                <p aria-live="polite" className="text-on-surface-variant font-body text-body-md mt-1.5">
                   <span className="font-semibold text-on-surface">{filteredProducts.length}</span>{" "}
                   {filteredProducts.length === 1
                     ? "producto tejido a mano"
@@ -280,6 +318,7 @@ export default function CatalogClient() {
                 role="combobox"
                 aria-expanded={isSearchFocused && !searchQuery}
                 aria-haspopup="listbox"
+                aria-controls="popular-searches-listbox"
                 aria-label="Buscar productos"
               >
                 <MdSearch className="text-on-surface-variant/50 ml-5 flex-shrink-0 w-5 h-5" />
@@ -288,8 +327,14 @@ export default function CatalogClient() {
                   type="text"
                   value={searchQuery}
                   onChange={onSearchInput}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      setIsSearchFocused(false);
+                      e.currentTarget.blur();
+                    }
+                  }}
                   placeholder="Buscar amigurumis, categorías..."
-                  className="flex-1 bg-transparent font-body text-body-md text-on-surface placeholder:text-on-surface-variant/60 outline-none py-3.5 min-w-0"
+                  className="flex-1 bg-transparent font-body text-body-md text-on-surface placeholder:text-on-surface-variant/70 outline-none py-3.5 min-w-0"
                   autoComplete="off"
                   spellCheck={false}
                   aria-label="Buscar"
@@ -298,7 +343,7 @@ export default function CatalogClient() {
                   <button
                     onClick={() => {
                       setSearchQuery("");
-                      syncUrl({ q: undefined });
+                      pushUrl({ q: undefined });
                       searchInputRef.current?.focus();
                     }}
                     className="p-2 mr-2 hover:bg-surface-container rounded-full transition-colors flex-shrink-0"
@@ -307,24 +352,12 @@ export default function CatalogClient() {
                     <MdClose className="w-4 h-4 text-on-surface-variant/60" />
                   </button>
                 )}
-                {/* Escape key handler */}
-                {isSearchFocused && (
-                  <button
-                    tabIndex={-1}
-                    style={{ display: "none" }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Escape") {
-                        setIsSearchFocused(false);
-                        searchInputRef.current?.blur();
-                      }
-                    }}
-                  />
-                )}
               </div>
 
               {/* Popular searches (only when focused + no query) */}
               {isSearchFocused && !searchQuery && (
                 <div
+                  id="popular-searches-listbox"
                   className="absolute top-full left-0 right-0 mt-1 z-20 bg-surface-container-lowest rounded-2xl shadow-elevation border border-outline-variant/20 p-4 animate-[search-slide-down_0.2s_cubic-bezier(0.16,1,0.3,1)]"
                   role="listbox"
                   aria-label="Búsquedas populares"
@@ -358,7 +391,7 @@ export default function CatalogClient() {
               <div className="flex-1 flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1 w-full sm:w-auto sm:mx-0 sm:px-0">
                 <button
                   onClick={() => handleCategoryChange("")}
-                  className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 flex-shrink-0 ${
+                  className={`whitespace-nowrap px-4 min-h-[44px] rounded-full text-sm font-semibold transition-all duration-200 flex-shrink-0 flex items-center ${
                     !activeCategory
                       ? "bg-secondary text-on-secondary shadow-button"
                       : "bg-surface-container-lowest text-on-surface-variant hover:bg-secondary-container/40 border border-outline-variant/20"
@@ -370,7 +403,7 @@ export default function CatalogClient() {
                   <button
                     key={cat.name}
                     onClick={() => handleCategoryChange(cat.name)}
-                    className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 flex-shrink-0 flex items-center gap-1.5 ${
+                    className={`whitespace-nowrap px-4 min-h-[44px] rounded-full text-sm font-semibold transition-all duration-200 flex-shrink-0 flex items-center gap-1.5 ${
                       activeCategory === cat.name
                         ? "bg-secondary text-on-secondary shadow-button"
                         : "bg-surface-container-lowest text-on-surface-variant hover:bg-secondary-container/40 border border-outline-variant/20"
@@ -404,13 +437,14 @@ export default function CatalogClient() {
                     e.stopPropagation();
                     setShowSortDropdown(!showSortDropdown);
                   }}
-                  className={`w-full sm:w-auto flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 border ${
+                  className={`w-full sm:w-auto flex items-center gap-2 px-4 min-h-[44px] rounded-full text-sm font-semibold transition-all duration-200 border ${
                     sortOption !== "default"
                       ? "bg-secondary-container/40 text-secondary border-secondary/30"
                       : "bg-surface-container-lowest text-on-surface-variant border-outline-variant/20 hover:bg-secondary-container/40"
                   }`}
                   aria-haspopup="listbox"
                   aria-expanded={showSortDropdown}
+                  aria-controls="sort-options-listbox"
                   aria-label="Ordenar productos"
                 >
                   <MdOutlineFilterList className="w-4 h-4" />
@@ -426,6 +460,7 @@ export default function CatalogClient() {
 
                 {showSortDropdown && (
                   <div
+                    id="sort-options-listbox"
                     className="absolute top-full right-0 mt-1 z-20 w-[220px] bg-surface-container-lowest rounded-2xl shadow-elevation border border-outline-variant/20 py-2 animate-[search-slide-down_0.15s_cubic-bezier(0.16,1,0.3,1)]"
                     role="listbox"
                     aria-label="Opciones de orden"
@@ -475,7 +510,7 @@ export default function CatalogClient() {
                     <button
                       onClick={() => {
                         setSearchQuery("");
-                        syncUrl({ q: undefined });
+                        pushUrl({ q: undefined });
                       }}
                       className="ml-0.5 hover:bg-tertiary-container/60 rounded-full p-1.5"
                       aria-label="Quitar búsqueda"
@@ -510,8 +545,8 @@ export default function CatalogClient() {
           {/* ── Product Grid ──────────────────────────────── */}
           {displayedProducts.length > 0 ? (
             <>
+              <h2 className="sr-only">Productos del catálogo</h2>
               <div
-                ref={gridRef}
                 className="grid grid-cols-1 gap-5 sm:gap-6 lg:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] lg:justify-center"
               >
                 {displayedProducts.map((product, i) => (

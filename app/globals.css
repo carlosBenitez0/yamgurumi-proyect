@@ -54,6 +54,9 @@
   --color-outline: #81746f;
   --color-outline-variant: #d3c3bd;
 
+  /* === Accent (rating stars) === */
+  --color-star: #d4a843;
+
   /* === Font Families === */
   --font-headline: "Comfortaa", cursive;
   --font-body: "Manrope", sans-serif;
