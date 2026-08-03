@@ -8,17 +8,59 @@ interface ScrollRevealProps {
   delay?: number;
 }
 
+/* ── Shared IntersectionObserver ──────────────────────────
+ * Un solo observer para todos los elementos: evita crear un
+ * observer por card (40+ en el catálogo).
+ */
+
+let sharedObserver: IntersectionObserver | null = null;
+const registry = new Map<Element, () => void>();
+
+function getSharedObserver(): IntersectionObserver | null {
+  if (typeof IntersectionObserver === "undefined") return null;
+
+  if (!sharedObserver) {
+    sharedObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const reveal = registry.get(entry.target);
+            if (reveal) {
+              reveal();
+              registry.delete(entry.target);
+              sharedObserver?.unobserve(entry.target);
+            }
+          }
+        }
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" },
+    );
+  }
+  return sharedObserver;
+}
+
+/* ── Component ──────────────────────────────────────────── */
+
 export default function ScrollReveal({
   children,
   className = "",
   delay = 0,
 }: ScrollRevealProps) {
   const [revealed, setRevealed] = useState(false);
+  const [reduced, setReduced] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    // Respetar prefers-reduced-motion: sin desplazamiento ni transición.
+    // El contenido nunca se oculta, solo se anula el movimiento.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setReduced(true);
+      setRevealed(true);
+      return;
+    }
 
     // Verificar visibilidad inmediata después del layout (requestAnimationFrame
     // garantiza que el navegador ya calculó posiciones incluso tras re-render).
@@ -34,34 +76,32 @@ export default function ScrollReveal({
         return;
       }
 
-      // Solo crear observer si está fuera del viewport
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setRevealed(true);
-            observer.unobserve(el);
-          }
-        },
-        { threshold: 0.15, rootMargin: "0px 0px -40px 0px" },
-      );
-
-      observer.observe(el);
+      // Fuera del viewport: registrarse en el observer compartido
+      registry.set(el, () => setRevealed(true));
+      getSharedObserver()?.observe(el);
     });
 
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      if (el) {
+        registry.delete(el);
+        sharedObserver?.unobserve(el);
+      }
+    };
   }, []);
 
   const delayStyle =
-    delay > 0 ? { transitionDelay: `${delay * 0.08}s` } : undefined;
+    !reduced && delay > 0 ? { transitionDelay: `${delay * 0.08}s` } : undefined;
 
   return (
     <div
       ref={ref}
       className={className || undefined}
       style={{
-        transform: revealed ? "translateY(0)" : "translateY(24px)",
-        transition:
-          "transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)",
+        transform: reduced || revealed ? "none" : "translateY(24px)",
+        transition: reduced
+          ? "none"
+          : "transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)",
         ...delayStyle,
       }}
     >

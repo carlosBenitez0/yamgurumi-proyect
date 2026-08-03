@@ -1,9 +1,14 @@
+export type ProductSize = "Mini" | "Mediano" | "Grande";
+
 export interface Product {
   id: string;
   name: string;
   slug: string;
   price: number;
   category: ProductCategory;
+  /** Tamaño físico de la pieza: Mini (llaveros, decoración pequeña),
+   *  Mediano (muñecos abrazables) o Grande (cojines, bolsos, piezas grandes). */
+  size: ProductSize;
   description: string;
   materials: string;
   tags: string[];
@@ -20,6 +25,13 @@ export type ProductCategory =
   | "Llaveros"
   | "Navideño"
   | "Infantil";
+
+/** Opciones de tamaño para los filtros del catálogo (value = slug de URL). */
+export const sizeOptions: { value: string; label: ProductSize }[] = [
+  { value: "mini", label: "Mini" },
+  { value: "mediano", label: "Mediano" },
+  { value: "grande", label: "Grande" },
+];
 
 export const categories: { name: ProductCategory; count: number; icon: string }[] = [
   { name: "Muñecos", count: 6, icon: "🧸" },
@@ -38,6 +50,7 @@ export const products: Product[] = [
     slug: "dragon-celestino",
     price: 35.0,
     category: "Muñecos",
+    size: "Mediano",
     description: "Adorable dragón tejido a mano con alas desplegables y cola curvada en tonos celestes.",
     materials: "100% Algodón Mercerizado + Relleno Hipoalergénico",
     tags: ["Best Seller", "Muñecos"],
@@ -56,6 +69,7 @@ export const products: Product[] = [
     slug: "zorro-otonal",
     price: 42.0,
     category: "Muñecos",
+    size: "Mediano",
     description: "Zorro naranja con bufanda tejida a mano y cola esponjosa, edición limitada de temporada.",
     materials: "100% Algodón Mercerizado + Fieltro",
     tags: ["Limitado", "Muñecos"],
@@ -74,6 +88,7 @@ export const products: Product[] = [
     slug: "gatito-naranja",
     price: 30.0,
     category: "Muñecos",
+    size: "Mediano",
     description: "Gatito naranja con ojos grandes bordados y cola curvada, abrazable y tierno.",
     materials: "100% Algodón Orgánico + Relleno Hipoalergénico",
     tags: ["Best Seller", "Muñecos"],
@@ -92,6 +107,7 @@ export const products: Product[] = [
     slug: "conejo-primavera",
     price: 33.0,
     category: "Muñecos",
+    size: "Mediano",
     description: "Conejo tejido con orejas largas y moño de flores, perfecto para la temporada de pascua.",
     materials: "100% Algodón Orgánico + Relleno Hipoalergénico",
     tags: ["Nuevo", "Muñecos"],
@@ -110,6 +126,7 @@ export const products: Product[] = [
     slug: "buho-sabio",
     price: 38.0,
     category: "Muñecos",
+    size: "Mediano",
     description: "Búho tejido con ojos grandes redondos y bufanda de invierno, mirada intrigante.",
     materials: "Algodón Mercerizado + Ojos de Seguridad + Fieltro",
     tags: ["Muñecos", "Favorito"],
@@ -128,6 +145,7 @@ export const products: Product[] = [
     slug: "tortuga-marina",
     price: 29.0,
     category: "Muñecos",
+    size: "Mediano",
     description: "Tortuga marina con caparazón de colores tropicales y aletas flexibles tejidas.",
     materials: "100% Algodón + Relleno Reciclado",
     tags: ["Popular", "Muñecos"],
@@ -148,6 +166,7 @@ export const products: Product[] = [
     slug: "set-de-setas-magicas",
     price: 28.0,
     category: "Decoración",
+    size: "Mini",
     description: "Set de 3 setas decorativas tejidas en diferentes tamaños y colores otoñales.",
     materials: "100% Algodón Orgánico + Relleno Hipoalergénico",
     tags: ["Nuevo", "Decoración"],
@@ -166,6 +185,7 @@ export const products: Product[] = [
     slug: "cojin-corazon",
     price: 38.0,
     category: "Decoración",
+    size: "Grande",
     description: "Cojín en forma de corazón con textura de punto de ganchillo, ideal para el sofá.",
     materials: "Algodón + Relleno Siliconado",
     tags: ["Decoración", "Hogar"],
@@ -184,6 +204,7 @@ export const products: Product[] = [
     slug: "cactus-feliz",
     price: 22.0,
     category: "Decoración",
+    size: "Mini",
     description: "Cactus tejido con maceta de terracota y carita sonriente, perfecto para el escritorio.",
     materials: "100% Algodón + Maceta de Arcilla",
     tags: ["Decoración", "Hogar"],
@@ -202,6 +223,7 @@ export const products: Product[] = [
     slug: "jarron-boho",
     price: 42.0,
     category: "Decoración",
+    size: "Grande",
     description: "Jarrón tejido estilo bohemio con textura de macramé y base de madera estable.",
     materials: "Algodón Cord + Base de Madera",
     tags: ["Decoración", "Boho"],
@@ -220,6 +242,7 @@ export const products: Product[] = [
     slug: "guirnalda-caritas",
     price: 18.0,
     category: "Decoración",
+    size: "Mini",
     description: "Guirnalda de 8 caritas sonrientes tejidas en colores pastel para habitaciones.",
     materials: "Algodón + Hilo de Cáñamo",
     tags: ["Decoración", "Infantil"],
@@ -240,6 +263,7 @@ export const products: Product[] = [
     slug: "mono-reversible",
     price: 28.0,
     category: "Accesorios",
+    size: "Mediano",
     description: "Mono tejido que se revierte de cara feliz a triste, ideal para expresar emociones.",
     materials: "Algodón + Cierre Magnético",
     tags: ["Accesorios", "Creativo"],
@@ -258,6 +282,7 @@ export const products: Product[] = [
     slug: "flor-alfiler",
     price: 8.0,
     category: "Accesorios",
+    size: "Mini",
     description: "Flor tejida para usar como alfiler de pecho o broche en chaquetas y sombreros.",
     materials: "Algodón Mercerizado + Base de Acero",
     tags: ["Accesorios", "Regalo"],
@@ -276,6 +301,7 @@ export const products: Product[] = [
     slug: "bolsa-tejida",
     price: 55.0,
     category: "Accesorios",
+    size: "Grande",
     description: "Bolsa tejida a mano estilo bohemio con tiradores largos y cierre magnético.",
     materials: "Algodón Cord + Herrajes de Bronce",
     tags: ["Accesorios", "Edición Especial"],
@@ -296,6 +322,7 @@ export const products: Product[] = [
     slug: "ballena-mini-llavero",
     price: 15.0,
     category: "Llaveros",
+    size: "Mini",
     description: "Llavero de ballenato en miniatura tejido a mano, perfecto para llaves o mochila.",
     materials: "Algodón + Relleno Hipoalergénico + Argolla de Acero",
     tags: ["Popular", "Llaveros"],
@@ -314,6 +341,7 @@ export const products: Product[] = [
     slug: "llavero-estrella",
     price: 12.0,
     category: "Llaveros",
+    size: "Mini",
     description: "Estrella tejida en tonos pastel con argolla de metal pulido, regalo perfecto.",
     materials: "Algodón Mercerizado + Argolla de Acero",
     tags: ["Llaveros", "Regalo"],
@@ -332,6 +360,7 @@ export const products: Product[] = [
     slug: "llavero-corazon-rosa",
     price: 10.0,
     category: "Llaveros",
+    size: "Mini",
     description: "Corazón tejido en rosa pastel con detalle de lentejuelas y argolla de acero.",
     materials: "Algodón + Lentejuelas + Argolla de Acero",
     tags: ["Llaveros", "Favorito"],
@@ -350,6 +379,7 @@ export const products: Product[] = [
     slug: "llavero-gato-negro",
     price: 12.0,
     category: "Llaveros",
+    size: "Mini",
     description: "Gato negro tejido con ojos brillantes y colita curvada, símbolo de buena suerte.",
     materials: "Algodón Negro + Ojos Brillantes + Argolla de Acero",
     tags: ["Llaveros", "Popular"],
@@ -370,6 +400,7 @@ export const products: Product[] = [
     slug: "muneco-de-nieve",
     price: 25.0,
     category: "Navideño",
+    size: "Mediano",
     description: "Muñeco de nieve tejido con cachemira roja y gorro de lana, temático de Navidad.",
     materials: "100% Algodón + Botones de Madera",
     tags: ["Navideño", "Temporada"],
@@ -388,6 +419,7 @@ export const products: Product[] = [
     slug: "arbol-navidad-mini",
     price: 20.0,
     category: "Navideño",
+    size: "Mini",
     description: "Árbol navideño tejido en miniatura con estrella dorada y base estable.",
     materials: "Algodón + Brillo Seguro + Base de Madera",
     tags: ["Navideño", "Decoración"],
@@ -406,6 +438,7 @@ export const products: Product[] = [
     slug: "reno-navideno",
     price: 30.0,
     category: "Navideño",
+    size: "Mediano",
     description: "Reno tejido con cuernos grandes y nariz roja brillante, compañero de Papá Noel.",
     materials: "Algodón + Nariz de Fieltro + Brillo Seguro",
     tags: ["Navideño", "Temporada"],
@@ -426,6 +459,7 @@ export const products: Product[] = [
     slug: "unicornio-arcoiris",
     price: 45.0,
     category: "Infantil",
+    size: "Grande",
     description: "Unicornio tejido con crin arcoíris y cuerno dorado, seguro para niños.",
     materials: "Algodón Hipoalergénico + Ojos de Seguridad",
     tags: ["Infantil", "Seguro"],
@@ -444,6 +478,7 @@ export const products: Product[] = [
     slug: "osito-de-panal",
     price: 32.0,
     category: "Infantil",
+    size: "Mediano",
     description: "Osito suave para bebé con mantita de panal integrada, ideal para recién nacidos.",
     materials: "Algodón Orgánico + Relleno Hipoalergénico",
     tags: ["Infantil", "Bebé"],
@@ -462,6 +497,7 @@ export const products: Product[] = [
     slug: "elefante-bebe",
     price: 36.0,
     category: "Infantil",
+    size: "Mediano",
     description: "Elefante suave con mantita de seguridad integrada, perfecto para bebés.",
     materials: "Algodón Orgánico + Relleno Hipoalergénico + Mantita de Algodón",
     tags: ["Infantil", "Bebé"],

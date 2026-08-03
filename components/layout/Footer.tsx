@@ -82,7 +82,7 @@ export default function Footer() {
                         </svg>
                       ),
                       label: "WhatsApp",
-                      href: "#",
+                      href: "https://wa.me/50377311064",
                     },
                     {
                       icon: (

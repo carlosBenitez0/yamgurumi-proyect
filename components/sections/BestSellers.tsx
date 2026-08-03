@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import SectionWrapper from "@/components/ui/SectionWrapper";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 import { YarnBall, CrochetHook } from "@/components/ui/CraftBackground";
-import { MdStar, MdStarBorder, MdFavorite, MdFavoriteBorder, MdAddShoppingCart, MdChevronLeft, MdChevronRight, MdStorefront } from "react-icons/md";
+import { MdStar, MdStarBorder, MdFavorite, MdFavoriteBorder, MdAddShoppingCart, MdCheck, MdChevronLeft, MdChevronRight, MdStorefront } from "react-icons/md";
 import { products as allProducts } from "@/data/products";
+import type { Product } from "@/data/products";
+import { useCartStore } from "@/lib/cart-store";
 
 const mainCategoryTabs = ["Todos", "Muñecos", "Decoración", "Llaveros"];
 const extraCategories = ["Accesorios", "Navideño", "Infantil"];
@@ -43,10 +45,27 @@ function StarRating({ rating, reviews }: { rating: number; reviews: number }) {
 export default function BestSellers() {
   const [activeTab, setActiveTab] = useState("Todos");
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
+  const [addedId, setAddedId] = useState<string | null>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
+  const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const addItem = useCartStore((s) => s.addItem);
+
+  useEffect(
+    () => () => {
+      if (addedTimer.current) clearTimeout(addedTimer.current);
+    },
+    [],
+  );
 
   const toggleFav = (name: string) => {
     setFavorites((prev) => ({ ...prev, [name]: !prev[name] }));
+  };
+
+  const handleAdd = (product: Product) => {
+    addItem(product);
+    setAddedId(product.id);
+    if (addedTimer.current) clearTimeout(addedTimer.current);
+    addedTimer.current = setTimeout(() => setAddedId(null), 1200);
   };
 
   const bestSellers = allProducts.filter(p => p.tags.includes("Best Seller") || p.rating >= 4.8);
@@ -178,12 +197,23 @@ export default function BestSellers() {
                     ${product.price.toFixed(2)}
                   </span>
                   <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                    className="bg-secondary text-on-secondary px-3 py-2 rounded-full flex items-center gap-1.5 text-[11px] font-bold tactile-press transition-all shadow-button hover:bg-secondary/90"
-                    aria-label={`Agregar ${product.name} al carrito`}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAdd(product); }}
+                    className={`bg-secondary text-on-secondary px-3 py-2 rounded-full flex items-center gap-1.5 text-[11px] font-bold tactile-press transition-all shadow-button ${
+                      addedId === product.id ? "bg-[#3a9d62] hover:bg-[#3a9d62]" : "hover:bg-secondary/90"
+                    }`}
+                    aria-label={`Agregar ${product.name} a la bolsa`}
                   >
-                    <MdAddShoppingCart className="text-[16px]" />
-                    <span>Añadir</span>
+                    {addedId === product.id ? (
+                      <>
+                        <MdCheck className="text-[16px]" />
+                        <span aria-live="polite">¡Añadido!</span>
+                      </>
+                    ) : (
+                      <>
+                        <MdAddShoppingCart className="text-[16px]" />
+                        <span>Añadir</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </article>
@@ -267,12 +297,23 @@ export default function BestSellers() {
                     ${product.price.toFixed(2)}
                   </span>
                   <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                    className="bg-secondary text-on-secondary px-3 py-2 rounded-full flex items-center gap-1.5 text-[11px] font-bold tactile-press transition-all shadow-button hover:bg-secondary/90"
-                    aria-label={`Agregar ${product.name} al carrito`}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAdd(product); }}
+                    className={`bg-secondary text-on-secondary px-3 py-2 rounded-full flex items-center gap-1.5 text-[11px] font-bold tactile-press transition-all shadow-button ${
+                      addedId === product.id ? "bg-[#3a9d62] hover:bg-[#3a9d62]" : "hover:bg-secondary/90"
+                    }`}
+                    aria-label={`Agregar ${product.name} a la bolsa`}
                   >
-                    <MdAddShoppingCart className="text-[16px]" />
-                    <span>Añadir</span>
+                    {addedId === product.id ? (
+                      <>
+                        <MdCheck className="text-[16px]" />
+                        <span aria-live="polite">¡Añadido!</span>
+                      </>
+                    ) : (
+                      <>
+                        <MdAddShoppingCart className="text-[16px]" />
+                        <span>Añadir</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </article>
