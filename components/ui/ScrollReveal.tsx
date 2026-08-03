@@ -47,11 +47,20 @@ export default function ScrollReveal({
   delay = 0,
 }: ScrollRevealProps) {
   const [revealed, setRevealed] = useState(false);
+  const [reduced, setReduced] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    // Respetar prefers-reduced-motion: sin desplazamiento ni transición.
+    // El contenido nunca se oculta, solo se anula el movimiento.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setReduced(true);
+      setRevealed(true);
+      return;
+    }
 
     // Verificar visibilidad inmediata después del layout (requestAnimationFrame
     // garantiza que el navegador ya calculó posiciones incluso tras re-render).
@@ -82,16 +91,17 @@ export default function ScrollReveal({
   }, []);
 
   const delayStyle =
-    delay > 0 ? { transitionDelay: `${delay * 0.08}s` } : undefined;
+    !reduced && delay > 0 ? { transitionDelay: `${delay * 0.08}s` } : undefined;
 
   return (
     <div
       ref={ref}
       className={className || undefined}
       style={{
-        transform: revealed ? "translateY(0)" : "translateY(24px)",
-        transition:
-          "transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)",
+        transform: reduced || revealed ? "none" : "translateY(24px)",
+        transition: reduced
+          ? "none"
+          : "transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)",
         ...delayStyle,
       }}
     >

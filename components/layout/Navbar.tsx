@@ -2,16 +2,30 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   MdMenu,
   MdClose,
 } from "react-icons/md";
 import SearchModal from "@/components/ui/SearchModal";
+import { useCartStore, selectCount } from "@/lib/cart-store";
 
-const navLinks = [
+interface NavLink {
+  label: string;
+  href: string;
+  /* Secciones que cuentan como esta página (p. ej. las rutas de catálogo). */
+  sections?: string[];
+}
+
+const navLinks: NavLink[] = [
   { label: "Inicio", href: "/" },
-  { label: "Catálogo", href: "/catalog" },
-  { label: "Nuestra Historia", href: "/historia" },
+  {
+    label: "Catálogo",
+    href: "/catalog",
+    sections: ["/catalog", "/categoria", "/producto"],
+  },
+  { label: "Nuestra Historia", href: "/our-history" },
+  { label: "Contacto", href: "/contact" },
 ];
 
 const LOGO_URL =
@@ -34,21 +48,29 @@ const CartIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const UserIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className={className}>
-    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-    <circle cx="12" cy="7" r="4" />
-  </svg>
-);
-
 /* ── Component ──────────────────────────────────────────── */
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [cartCount] = useState(2);
+  const cartCount = useCartStore(selectCount);
+  const openDrawer = useCartStore((s) => s.openDrawer);
+
+  /* ── Sección activa: derivada de la ruta real ───────────
+   * Se calcula en cada render, así el resaltado sigue a la
+   * página en la que estés: visitas directas, atrás/adelante
+   * y navegación client-side incluidos. Si ninguna sección
+   * coincide (p. ej. /bag), no se resalta nada. */
+
+  const pathname = usePathname();
+  const activeIndex = navLinks.findIndex((link) =>
+    (link.sections ?? [link.href]).some((section) =>
+      section === "/"
+        ? pathname === "/"
+        : pathname === section || pathname.startsWith(`${section}/`),
+    ),
+  );
 
   const linkRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const indicatorRef = useRef<HTMLDivElement>(null);
@@ -65,10 +87,16 @@ export default function Navbar() {
   /* ── Active link indicator ─────────────────────────────── */
 
   const moveIndicator = useCallback(() => {
-    const link = linkRefs.current[activeIndex];
     const nav = navRef.current;
     const indicator = indicatorRef.current;
-    if (!link || !nav || !indicator) return;
+    if (!nav || !indicator) return;
+
+    const link = linkRefs.current[activeIndex];
+    if (!link) {
+      /* Sin sección activa (p. ej. /bag): ocultar la píldora. */
+      indicator.style.opacity = "0";
+      return;
+    }
 
     const navRect = nav.getBoundingClientRect();
     const linkRect = link.getBoundingClientRect();
@@ -196,11 +224,11 @@ export default function Navbar() {
               style={{ height: "38px", top: "50%", transform: "translateY(-50%)" }}
             />
             {navLinks.map((link, i) => (
-              <a
+              <Link
                 key={link.label}
                 href={link.href}
                 ref={(el) => { linkRefs.current[i] = el; }}
-                onClick={() => setActiveIndex(i)}
+                aria-current={i === activeIndex ? "page" : undefined}
                 className={`relative inline-flex items-center justify-center font-body text-[14px] font-bold tracking-wide transition-colors duration-300 whitespace-nowrap px-5 py-2 rounded-full ${
                   i === activeIndex
                     ? "text-secondary"
@@ -208,7 +236,7 @@ export default function Navbar() {
                 }`}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </nav>
 
@@ -223,8 +251,9 @@ export default function Navbar() {
             </button>
 
             <button
+              onClick={openDrawer}
               className="relative p-2.5 hover:bg-secondary-container/50 rounded-full transition-all duration-300 active:scale-95 flex items-center justify-center focus-ring tactile-press"
-              aria-label="Carrito de compras"
+              aria-label={`Bolsa de compras${cartCount > 0 ? `, ${cartCount} ${cartCount === 1 ? "pieza" : "piezas"}` : ""}`}
             >
               <CartIcon className="w-5 h-5 text-secondary" />
               {cartCount > 0 && (
@@ -232,13 +261,6 @@ export default function Navbar() {
                   {cartCount}
                 </span>
               )}
-            </button>
-
-            <button
-              className="p-2.5 hover:bg-secondary-container/50 rounded-full transition-all duration-300 active:scale-95 hidden sm:flex items-center justify-center focus-ring tactile-press"
-              aria-label="Mi cuenta"
-            >
-              <UserIcon className="w-5 h-5 text-secondary" />
             </button>
 
             <button
@@ -292,9 +314,10 @@ export default function Navbar() {
         {/* Drawer links with staggered entrance */}
         <div className="flex flex-col gap-1 px-4 py-6 flex-1">
           {navLinks.map((link, i) => (
-            <a
+            <Link
               key={link.label}
               href={link.href}
+              aria-current={i === activeIndex ? "page" : undefined}
               className={`font-body text-body-md px-4 py-3.5 rounded-2xl transition-all duration-300 ${
                 i === activeIndex
                   ? "text-secondary font-bold bg-secondary-container/40"
@@ -313,29 +336,15 @@ export default function Navbar() {
               onClick={closeMobile}
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
 
         {/* Drawer footer */}
         <div className="px-6 py-6 border-t border-outline-variant/20 bg-surface-container-low/50">
-          <a
-            href="#"
-            className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-secondary transition-colors duration-300 rounded-xl hover:bg-secondary-container/20 focus-ring"
-            style={{
-              transitionDelay: isMobileOpen ? `${80 + navLinks.length * 60}ms` : "0ms",
-              opacity: isMobileOpen ? 1 : 0,
-              transform: isMobileOpen ? "translateX(0)" : "translateX(8px)",
-              transitionProperty: "opacity, transform, color, background-color",
-              transitionDuration: "400ms",
-              transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
-            }}
-          >
-            <UserIcon className="w-5 h-5 text-secondary" />
-            <span className="font-body text-body-sm font-medium">
-              Mi cuenta / Iniciar sesión
-            </span>
-          </a>
+          <span className="block text-center font-body text-[11px] uppercase tracking-widest text-on-surface-variant/60">
+            Hecho a mano con amor
+          </span>
         </div>
       </aside>
 
