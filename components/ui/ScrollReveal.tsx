@@ -6,6 +6,7 @@ interface ScrollRevealProps {
   children: ReactNode;
   className?: string;
   delay?: number;
+  style?: React.CSSProperties;
 }
 
 /* ── Shared IntersectionObserver ──────────────────────────
@@ -45,6 +46,7 @@ export default function ScrollReveal({
   children,
   className = "",
   delay = 0,
+  style: styleProp,
 }: ScrollRevealProps) {
   const [revealed, setRevealed] = useState(false);
   const [reduced, setReduced] = useState(false);
@@ -93,6 +95,10 @@ export default function ScrollReveal({
   const delayStyle =
     !reduced && delay > 0 ? { transitionDelay: `${delay * 0.08}s` } : undefined;
 
+  const mergedStyle = styleProp
+    ? { ...styleProp, ...delayStyle }
+    : delayStyle;
+
   return (
     <div
       ref={ref}
@@ -102,7 +108,7 @@ export default function ScrollReveal({
         transition: reduced
           ? "none"
           : "transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)",
-        ...delayStyle,
+        ...mergedStyle,
       }}
     >
       {children}

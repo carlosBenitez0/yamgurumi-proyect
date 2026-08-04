@@ -1,6 +1,7 @@
 import Hero3D from "@/components/Hero3D";
 import CategoryGrid from "@/components/sections/CategoryGrid";
 import BestSellers from "@/components/sections/BestSellers";
+import Transformaciones from "@/components/sections/Transformaciones";
 import ProcessSteps from "@/components/sections/ProcessSteps";
 import Newsletter from "@/components/sections/Newsletter";
 import SectionWrapper from "@/components/ui/SectionWrapper";
@@ -78,7 +79,7 @@ export default function Home() {
                   Ver Colección
                 </Link>
                 <Link
-                  href="#categorias"
+                  href="/contact?subject=custom"
                   className="border-2 border-primary text-primary font-bold rounded-full hover:bg-primary/5 active:scale-95 transition-all text-center text-base px-10 py-3.5 inline-flex justify-center items-center tactile-press"
                 >
                   Encargo Especial
@@ -117,6 +118,7 @@ export default function Home() {
         <div className="section-divider mx-auto max-w-5xl" />
         <CategoryGrid />
         <BestSellers />
+        <Transformaciones />
         <ProcessSteps />
         <Newsletter />
       </main>

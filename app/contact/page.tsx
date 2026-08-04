@@ -76,6 +76,8 @@ export default function ContactPage() {
                   Tu mensaje llega directo al chat del taller, sin formularios
                   que se pierden en el camino. Contanos qué necesitás: una
                   pieza, un encargo, una entrega — y el hilo hace el resto.
+                  ¿Tenés una imagen que querés convertir en amigurumi?
+                  Mandá la foto por WhatsApp y la transformamos juntos.
                 </p>
               </ScrollReveal>
             </header>
@@ -169,13 +171,16 @@ export default function ContactPage() {
               <dl className="grid md:grid-cols-2 gap-4 mt-6">
                 <ScrollReveal delay={60}>
                   <div className="bg-surface-container-lowest rounded-3xl border border-outline-variant/15 p-6 shadow-card">
-                    <dt className="font-headline text-headline-sm font-bold text-primary">
-                      ¿Hacés encargos personalizados?
-                    </dt>
-                    <dd className="mt-2 font-body text-body-sm leading-relaxed text-on-surface-variant">
-                      Sí: elegís la pieza y el taller la teje para vos. Contanos
-                      en el mensaje qué tenés en mente y te pasa el detalle.
-                    </dd>
+                      <dt className="font-headline text-headline-sm font-bold text-primary">
+                        ¿Hacés encargos personalizados?
+                      </dt>
+                      <dd className="mt-2 font-body text-body-sm leading-relaxed text-on-surface-variant">
+                        Sí: elegís la pieza y el taller la teje para vos. Si tenés
+                        una imagen — un personaje, una ilustración o un boceto —
+                        mandala por WhatsApp y la transformamos en un amigurumi
+                        único. Contanos en el mensaje qué tenés en mente y te pasa
+                        el detalle.
+                      </dd>
                     {/* POR DEFINIR: proceso y tiempos reales de un encargo */}
                   </div>
                 </ScrollReveal>
