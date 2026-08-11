@@ -113,22 +113,23 @@ export default function Footer() {
                 <h4 className="font-bold text-on-surface mb-2 font-headline text-headline-sm">
                   Enlaces Útiles
                 </h4>
-                {[
-                  "Política de Privacidad",
-                  "Envíos y Entregas",
-                  "Ventas al Mayor",
-                  "Preguntas Frecuentes",
-                  "Contacto",
-                ].map((link) => (
-                  <a
-                    key={link}
-                    href="#"
-                    className="text-on-surface-variant/80 hover:text-secondary font-body text-body-sm py-1 transition-all duration-[400ms] hover:translate-x-1"
-                    style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
-                  >
-                    {link}
-                  </a>
-                ))}
+                 {[
+                   { label: "Política de Privacidad", href: "#" },
+                   { label: "Envíos y Entregas", href: "#" },
+                   { label: "Ventas al Mayor", href: "#" },
+                   { label: "Preguntas Frecuentes", href: "#" },
+                   { label: "Contacto", href: "/contact" },
+                   { label: "Encargos personalizados", href: "/contact?subject=custom" },
+                 ].map((link) => (
+                   <a
+                     key={link.label}
+                     href={link.href}
+                     className="text-on-surface-variant/80 hover:text-secondary font-body text-body-sm py-1 transition-all duration-[400ms] hover:translate-x-1"
+                     style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
+                   >
+                     {link.label}
+                   </a>
+                 ))}
               </div>
 
               {/* Visit Column */}
