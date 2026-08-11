@@ -1,4 +1,4 @@
-import { requestResetAction } from '@/actions/auth/request-reset';
+import { requestResetAction } from '@/src/actions/auth/request-reset';
 import Link from 'next/link';
 
 export default function ResetRequestPage() {
@@ -7,7 +7,10 @@ export default function ResetRequestPage() {
       <div className="bg-white p-8 rounded-lg shadow-sm max-w-md w-full">
         <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">Recuperar Contraseña</h1>
         
-        <form action={requestResetAction} className="space-y-4">
+        <form action={async (formData) => {
+          'use server';
+          await requestResetAction(formData);
+        }} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
             <input 
