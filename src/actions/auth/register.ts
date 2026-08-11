@@ -1,8 +1,8 @@
 'use server';
-import prisma from '@/lib/prisma';
-import { hashPassword } from '@/lib/auth/password';
-import { registerSchema } from '@/lib/validation/auth.schemas';
-import { sendVerificationEmail } from '@/lib/email/send';
+import prisma from '@/src/lib/prisma';
+import { hashPassword } from '@/src/lib/auth/password';
+import { registerSchema } from '@/src/lib/validation/auth.schemas';
+import { sendVerificationEmail } from '@/src/lib/email/send';
 import { SignJWT } from 'jose';
 
 export async function registerAction(prevState: any, formData: FormData) {

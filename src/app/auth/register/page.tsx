@@ -1,5 +1,5 @@
 'use client';
-import { registerAction } from '@/actions/auth/register';
+import { registerAction } from '@/src/actions/auth/register';
 import Link from 'next/link';
 import { useActionState } from 'react';
 

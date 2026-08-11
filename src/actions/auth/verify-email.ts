@@ -1,6 +1,6 @@
 'use server';
-import prisma from '@/lib/prisma';
-import { signToken, setAuthCookie } from '@/lib/auth/tokens';
+import prisma from '@/src/lib/prisma';
+import { signToken, setAuthCookie } from '@/src/lib/auth/tokens';
 import { jwtVerify } from 'jose';
 
 export async function verifyEmailAction(token: string) {

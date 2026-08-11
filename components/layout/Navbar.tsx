@@ -10,7 +10,7 @@ import {
 } from "react-icons/md";
 import SearchModal from "@/components/ui/SearchModal";
 import { useCartStore, selectCount } from "@/lib/cart-store";
-import { JWTPayload } from "jose";
+import type { JWTPayload } from "@/src/lib/auth/tokens";
 
 interface NavLink {
   label: string;

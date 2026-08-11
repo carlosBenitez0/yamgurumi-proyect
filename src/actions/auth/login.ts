@@ -1,8 +1,8 @@
 'use server';
-import prisma from '@/lib/prisma';
-import { verifyPassword } from '@/lib/auth/password';
-import { signToken, setAuthCookie } from '@/lib/auth/tokens';
-import { loginSchema } from '@/lib/validation/auth.schemas';
+import prisma from '@/src/lib/prisma';
+import { verifyPassword } from '@/src/lib/auth/password';
+import { signToken, setAuthCookie } from '@/src/lib/auth/tokens';
+import { loginSchema } from '@/src/lib/validation/auth.schemas';
 
 export async function loginAction(prevState: any, formData: FormData) {
   try {
