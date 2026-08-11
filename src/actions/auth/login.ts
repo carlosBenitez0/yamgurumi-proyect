@@ -4,7 +4,7 @@ import { verifyPassword } from '@/lib/auth/password';
 import { signToken, setAuthCookie } from '@/lib/auth/tokens';
 import { loginSchema } from '@/lib/validation/auth.schemas';
 
-export async function loginAction(formData: FormData) {
+export async function loginAction(prevState: any, formData: FormData) {
   try {
     const data = Object.fromEntries(formData.entries());
     const validated = loginSchema.safeParse(data);

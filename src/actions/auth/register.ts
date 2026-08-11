@@ -5,7 +5,7 @@ import { registerSchema } from '@/lib/validation/auth.schemas';
 import { sendVerificationEmail } from '@/lib/email/send';
 import { randomBytes } from 'crypto';
 
-export async function registerAction(formData: FormData) {
+export async function registerAction(prevState: any, formData: FormData) {
   try {
     const data = Object.fromEntries(formData.entries());
     const validated = registerSchema.safeParse(data);
