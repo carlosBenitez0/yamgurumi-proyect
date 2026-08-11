@@ -2,7 +2,7 @@ import { defineConfig } from 'prisma/config'
 
 export default defineConfig({
   schema: './prisma/schema.prisma',
-  migrate: {
-    url: process.env.DATABASE_URL,
+  datasource: {
+    url: 'postgresql://yamgurumi:yamiadmin3123@localhost:5432/yamgurumi?schema=public',
   },
 })
