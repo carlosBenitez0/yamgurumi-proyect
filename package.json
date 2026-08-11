@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@prisma/client": "^7.9.1",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "gsap": "^3.15.0",
@@ -29,6 +30,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "playwright": "^1.62.0",
+    "prisma": "^7.9.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

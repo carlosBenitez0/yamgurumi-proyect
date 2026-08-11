@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ===== ENUMS =====
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum TokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+// ===== MODELOS =====
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String?
+  emailVerified DateTime?
+  role          Role      @default(CUSTOMER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions      Session[]
+  addresses     Address[]
+  orders        Order[]
+  newsletter    NewsletterSubscriber?
+  discountCodes DiscountCode[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  id        String     @id @default(cuid())
+  email     String
+  token     String     @unique
+  type      TokenType
+  expiresAt DateTime
+  createdAt DateTime   @default(now())
+  @@unique([email, type])
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  userId    String?  @unique
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  source    String   @default("home")
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model DiscountCode {
+  id         String   @id @default(cuid())
+  code       String   @unique
+  percent    Int
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  usageLimit Int      @default(1)
+  usedCount  Int      @default(0)
+  expiresAt  DateTime?
+  createdAt  DateTime @default(now())
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String
+  zone      String
+  notes     String?
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id           String       @id @default(cuid())
+  userId       String?
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email        String
+  phone        String
+  zone         String
+  notes        String?
+  subtotal     Decimal      @db.Decimal(10, 2)
+  discount     Decimal      @db.Decimal(10, 2) @default(0)
+  discountCode String?
+  total        Decimal      @db.Decimal(10, 2)
+  status       OrderStatus  @default(PENDING)
+  whatsappUrl  String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
