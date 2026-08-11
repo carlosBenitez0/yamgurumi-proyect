@@ -1,4 +1,4 @@
-import { resetPasswordAction } from '@/actions/auth/reset-password';
+import { resetPasswordAction } from '@/src/actions/auth/reset-password';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
@@ -17,7 +17,10 @@ export default async function ResetPasswordPage(props: { searchParams: SearchPar
       <div className="bg-white p-8 rounded-lg shadow-sm max-w-md w-full">
         <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">Nueva Contraseña</h1>
         
-        <form action={resetPasswordAction} className="space-y-4">
+        <form action={async (formData) => {
+          'use server';
+          await resetPasswordAction(formData);
+        }} className="space-y-4">
           <input type="hidden" name="token" value={token} />
           
           <div>

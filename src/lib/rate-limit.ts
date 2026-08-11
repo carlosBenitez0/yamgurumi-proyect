@@ -30,14 +30,17 @@ export async function rateLimit(key: string, limit: number, windowMs: number): P
 }
 
 export function withRateLimit<T extends (...args: any[]) => Promise<any>>(
-  action: T, getKey: (...args: Parameters<T>) => string, limit: number, windowMs: number
+  action: T,
+  getKey: (...args: Parameters<T>) => string,
+  limit: number,
+  windowMs: number
 ): T {
-  return (async (...args) => {
+  return (async (...args: Parameters<T>) => {
     const key = getKey(...args);
     const result = await rateLimit(key, limit, windowMs);
     if (!result.success) throw new Error(`RATE_LIMIT_EXCEEDED:${result.reset}`);
     return action(...args);
-  }) as T;
+  }) as unknown as T;
 }
 
 export const RATE_LIMITS = {
