@@ -6,9 +6,11 @@ import { usePathname } from "next/navigation";
 import {
   MdMenu,
   MdClose,
+  MdPerson,
 } from "react-icons/md";
 import SearchModal from "@/components/ui/SearchModal";
 import { useCartStore, selectCount } from "@/lib/cart-store";
+import { JWTPayload } from "jose";
 
 interface NavLink {
   label: string;
@@ -50,7 +52,7 @@ const CartIcon = ({ className }: { className?: string }) => (
 
 /* ── Component ──────────────────────────────────────────── */
 
-export default function Navbar() {
+export default function Navbar({ session }: { session?: JWTPayload | null }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -249,6 +251,23 @@ export default function Navbar() {
             >
               <SearchIcon className="w-5 h-5 text-secondary" />
             </button>
+
+            {session ? (
+              <Link
+                href="/cuenta"
+                className="flex relative p-2.5 hover:bg-secondary-container/50 rounded-full transition-all duration-300 active:scale-95 items-center justify-center focus-ring tactile-press"
+                title="Mi Cuenta"
+              >
+                <MdPerson className="w-[22px] h-[22px] text-secondary" />
+              </Link>
+            ) : (
+              <Link
+                href="/auth/login"
+                className="hidden md:flex relative px-4 py-1.5 ml-1 border border-secondary text-secondary hover:bg-secondary hover:text-white rounded-full text-sm font-bold transition-all duration-300"
+              >
+                Iniciar Sesión
+              </Link>
+            )}
 
             <button
               onClick={openDrawer}

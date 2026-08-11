@@ -23,11 +23,15 @@ export const metadata: Metadata = {
     "Descubre nuestra colección de amigurumis artesanales, diseñados con hilos de primera calidad y rellenos de pura ternura para acompañar tus mejores momentos.",
 };
 
-export default function RootLayout({
+import { getSession } from "@/src/lib/auth/session";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getSession();
+  
   return (
     <html
       lang="es"
@@ -36,7 +40,7 @@ export default function RootLayout({
       <head>
       </head>
       <body className="bg-background text-on-surface antialiased overflow-x-hidden w-full">
-        <Navbar />
+        <Navbar session={session} />
         {children}
         <Footer />
         <CartDrawer />
