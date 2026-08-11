@@ -1,7 +1,7 @@
 'use server';
-import prisma from '@/lib/prisma';
-import { hashPassword } from '@/lib/auth/password';
-import { resetPasswordSchema } from '@/lib/validation/auth.schemas';
+import prisma from '@/src/lib/prisma';
+import { hashPassword } from '@/src/lib/auth/password';
+import { resetPasswordSchema } from '@/src/lib/validation/auth.schemas';
 
 export async function resetPasswordAction(formData: FormData) {
   try {

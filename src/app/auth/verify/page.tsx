@@ -1,4 +1,4 @@
-import { verifyEmailAction } from '@/actions/auth/verify-email';
+import { verifyEmailAction } from '@/src/actions/auth/verify-email';
 import Link from 'next/link';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;

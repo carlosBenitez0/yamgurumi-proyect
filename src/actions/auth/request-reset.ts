@@ -1,7 +1,7 @@
 'use server';
-import prisma from '@/lib/prisma';
-import { sendResetPasswordEmail } from '@/lib/email/send';
-import { resetRequestSchema } from '@/lib/validation/auth.schemas';
+import prisma from '@/src/lib/prisma';
+import { sendResetPasswordEmail } from '@/src/lib/email/send';
+import { resetRequestSchema } from '@/src/lib/validation/auth.schemas';
 import { randomBytes } from 'crypto';
 
 export async function requestResetAction(formData: FormData) {

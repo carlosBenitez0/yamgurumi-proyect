@@ -1,6 +1,6 @@
 'use server';
-import { clearAuthCookie, getAuthCookie, verifyToken } from '@/lib/auth/tokens';
-import prisma from '@/lib/prisma';
+import { clearAuthCookie, getAuthCookie, verifyToken } from '@/src/lib/auth/tokens';
+import prisma from '@/src/lib/prisma';
 import { redirect } from 'next/navigation';
 
 export async function logoutAction() {
