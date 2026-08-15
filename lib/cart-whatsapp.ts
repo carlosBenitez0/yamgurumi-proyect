@@ -38,19 +38,33 @@ export interface DeliveryDetails {
 export function buildWhatsAppLink(
   items: CartItem[],
   details: DeliveryDetails,
+  discountCode?: string | null,
+  discountPercent: number = 0,
 ): string {
+  const subtotal = calculateSubtotal(items);
+  const discountAmount = (subtotal * discountPercent) / 100;
+  const total = subtotal - discountAmount;
+
   const lines = [
     "*Pedido para Yamgurumi*",
     "",
     formatItems(items),
     "",
-    `Subtotal: $${calculateSubtotal(items).toFixed(2)}`,
+    `Subtotal: $${subtotal.toFixed(2)}`,
+  ];
+
+  if (discountCode && discountPercent > 0) {
+    lines.push(`Descuento (${discountCode}): -$${discountAmount.toFixed(2)} (-${discountPercent}%)`);
+  }
+
+  lines.push(
     `Envío: ${SHIPPING.price}`,
+    `*Total:* $${total.toFixed(2)}`,
     "",
     `*Nombre:* ${details.name.trim()}`,
     `*Teléfono:* ${details.phone.trim()}`,
     `*Zona:* ${details.zone}`,
-  ];
+  );
 
   if (details.note.trim()) {
     lines.push(`*Nota:* ${details.note.trim()}`);

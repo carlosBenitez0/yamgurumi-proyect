@@ -3,7 +3,7 @@ import prisma from '@/src/lib/prisma';
 import { hashPassword } from '@/src/lib/auth/password';
 import { resetPasswordSchema } from '@/src/lib/validation/auth.schemas';
 
-export async function resetPasswordAction(formData: FormData) {
+export async function resetPasswordAction(prevState: any, formData: FormData) {
   try {
     const data = Object.fromEntries(formData.entries());
     const validated = resetPasswordSchema.safeParse(data);

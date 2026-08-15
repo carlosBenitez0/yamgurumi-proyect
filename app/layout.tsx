@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { Comfortaa, Manrope } from "next/font/google";
 import "./globals.css";
-import Footer from "@/components/layout/Footer";
-import Navbar from "@/components/layout/Navbar";
-import CartDrawer from "@/components/cart/CartDrawer";
 
 const comfortaa = Comfortaa({
   subsets: ["latin"],
@@ -23,15 +20,11 @@ export const metadata: Metadata = {
     "Descubre nuestra colección de amigurumis artesanales, diseñados con hilos de primera calidad y rellenos de pura ternura para acompañar tus mejores momentos.",
 };
 
-import { getSession } from "@/src/lib/auth/session";
-
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getSession();
-  
   return (
     <html
       lang="es"
@@ -40,10 +33,7 @@ export default async function RootLayout({
       <head>
       </head>
       <body className="bg-background text-on-surface antialiased overflow-x-hidden w-full">
-        <Navbar session={session} />
         {children}
-        <Footer />
-        <CartDrawer />
       </body>
     </html>
   );
