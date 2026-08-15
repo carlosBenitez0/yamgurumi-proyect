@@ -20,13 +20,13 @@ function pickProduct(id: string) {
 }
 
 const pares = [
-  { id: "gato-naranja", tema: "Gatito" },
-  { id: "buho-sabio", tema: "Búho" },
+  { id: "gatito-naranja", tema: "Gatito" },
+  { id: "buho-sabio-nocturno", tema: "Búho" },
   { id: "dragon-celestino", tema: "Dragón" },
   { id: "zorro-otonal", tema: "Zorro" },
-  { id: "amigurumi-unicornio", tema: "Unicornio" },
-  { id: "conejo-primavera", tema: "Conejo" },
-].map((p) => {
+  { id: "unicornio-magico", tema: "Unicornio" },
+  { id: "conejo-dulce-sueno", tema: "Conejo" },
+].map((p, idx) => {
   const producto = pickProduct(p.id);
   return {
     tema: p.tema,
@@ -203,7 +203,7 @@ export default function Transformaciones() {
         >
           {pares.map((par, i) => (
             <div
-              key={par.producto.id}
+              key={`${par.producto.id}-${i}`}
               data-slide={i}
               className="flex-none w-[85vw] max-w-[360px] snap-center"
             >

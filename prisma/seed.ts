@@ -1,29 +1,103 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../src/lib/prisma';
 import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
-
 async function main() {
-  const email = 'cb2724136@gmail.com';
-  const existing = await prisma.user.findUnique({ where: { email } });
-  
-  if (!existing) {
-    const passwordHash = await bcrypt.hash('yamiadmin3123', 12);
-    const admin = await prisma.user.create({
-      data: {
-        email,
-        name: 'yami',
-        passwordHash,
-        role: 'ADMIN',
-        emailVerified: new Date(),
+  console.log('🌱 Iniciando sembrado de base de datos Yamgurumi...');
+
+  const defaultPassword = 'Contrasena123!';
+  const passwordHash = await bcrypt.hash(defaultPassword, 12);
+
+  // 1. Usuarios (Admin y Clientes)
+  const usersData = [
+    {
+      email: 'admin@yamgurumi.com',
+      name: 'Carlos Benítez (Admin)',
+      role: 'ADMIN' as const,
+      passwordHash,
+      emailVerified: new Date(),
+    },
+    {
+      email: 'cb2724136@gmail.com',
+      name: 'Carlos Benítez',
+      role: 'ADMIN' as const,
+      passwordHash,
+      emailVerified: new Date(),
+    },
+    {
+      email: 'carlos@yamgurumi.com',
+      name: 'Carlos Benítez Cliente',
+      role: 'CUSTOMER' as const,
+      passwordHash,
+      emailVerified: new Date(),
+    },
+    {
+      email: 'maria.artesana@yamgurumi.com',
+      name: 'María Gutiérrez',
+      role: 'CUSTOMER' as const,
+      passwordHash,
+      emailVerified: new Date(),
+    },
+    {
+      email: 'cliente@yamgurumi.com',
+      name: 'Cliente Yamgurumi',
+      role: 'CUSTOMER' as const,
+      passwordHash,
+      emailVerified: new Date(),
+    },
+  ];
+
+  for (const u of usersData) {
+    const user = await prisma.user.upsert({
+      where: { email: u.email },
+      update: {
+        passwordHash: u.passwordHash,
+        role: u.role,
+        name: u.name,
       },
+      create: u,
     });
-    console.log('✅ Admin creado:', admin.email);
-  } else {
-    console.log('ℹ️ Admin ya existe:', existing.email);
+    console.log(`👤 Usuario registrado/actualizado: ${user.email} (${user.role}) - Contraseña: ${defaultPassword}`);
+
+    // Crear dirección de envío por defecto si no tiene
+    const addressCount = await prisma.address.count({ where: { userId: user.id } });
+    if (addressCount === 0) {
+      await prisma.address.create({
+        data: {
+          userId: user.id,
+          name: `${user.name || 'Cliente'} - Casa`,
+          phone: '+503 7731-1064',
+          zone: 'San Salvador, El Salvador 🇸🇻',
+          notes: 'Residencial Escalón, Avenida Masferrer Norte #123, San Salvador.',
+          isDefault: true,
+        },
+      });
+    }
   }
+
+  // 2. Cupones de Descuento
+  const discountCodes = [
+    { code: 'YAM10', percent: 10, usageLimit: 100 },
+    { code: 'BIENVENIDO20', percent: 20, usageLimit: 50 },
+    { code: 'CRAFT15', percent: 15, usageLimit: 200 },
+  ];
+
+  for (const d of discountCodes) {
+    await prisma.discountCode.upsert({
+      where: { code: d.code },
+      update: { percent: d.percent, usageLimit: d.usageLimit },
+      create: d,
+    });
+    console.log(`🎟️ Cupón de descuento disponible: ${d.code} (${d.percent}% OFF)`);
+  }
+
+  console.log('✨ Semilla completada exitosamente.');
 }
 
 main()
-  .catch((e) => { console.error(e); process.exit(1); })
-  .finally(async () => { await prisma.$disconnect(); });
+  .catch((e) => {
+    console.error('❌ Error en el sembrado:', e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

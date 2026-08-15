@@ -31,6 +31,7 @@ model User {
   email         String    @unique
   passwordHash  String
   name          String?
+  image         String?
   emailVerified DateTime?
   role          Role      @default(CUSTOMER)
   createdAt     DateTime  @default(now())
@@ -41,6 +42,7 @@ model User {
   orders        Order[]
   newsletter    NewsletterSubscriber?
   discountCodes DiscountCode[]
+  favorites     Favorite[]
 }
 
 model Session {
@@ -112,4 +114,14 @@ model Order {
   whatsappUrl  String
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
 }

@@ -23,12 +23,16 @@ export const MAX_QTY = 9;
 interface CartState {
   items: CartItem[];
   isOpen: boolean;
+  discountCode: string | null;
+  discountPercent: number;
   addItem: (product: Product, quantity?: number) => void;
   removeItem: (id: string) => void;
   setQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
   openDrawer: () => void;
   closeDrawer: () => void;
+  applyDiscount: (code: string, percent: number) => void;
+  removeDiscount: () => void;
 }
 
 /* ── Selectores ────────────────────────────────────────── */
@@ -39,6 +43,17 @@ export const selectCount = (s: Pick<CartState, "items">) =>
 export const selectSubtotal = (s: Pick<CartState, "items">) =>
   s.items.reduce((n, i) => n + i.price * i.quantity, 0);
 
+export const selectDiscountAmount = (s: Pick<CartState, "items" | "discountPercent">) => {
+  const subtotal = selectSubtotal(s);
+  return (subtotal * s.discountPercent) / 100;
+};
+
+export const selectTotal = (s: Pick<CartState, "items" | "discountPercent">) => {
+  const subtotal = selectSubtotal(s);
+  const discount = selectDiscountAmount(s);
+  return subtotal - discount;
+};
+
 /* ── Store ─────────────────────────────────────────────── */
 
 export const useCartStore = create<CartState>()(
@@ -46,6 +61,8 @@ export const useCartStore = create<CartState>()(
     (set) => ({
       items: [],
       isOpen: false,
+      discountCode: null,
+      discountPercent: 0,
 
       addItem: (product, quantity = 1) =>
         set((state) => {
@@ -88,15 +105,22 @@ export const useCartStore = create<CartState>()(
             .filter((i) => i.quantity > 0),
         })),
 
-      clearCart: () => set({ items: [] }),
+      clearCart: () => set({ items: [], discountCode: null, discountPercent: 0 }),
 
       openDrawer: () => set({ isOpen: true }),
       closeDrawer: () => set({ isOpen: false }),
+
+      applyDiscount: (code, percent) => set({ discountCode: code, discountPercent: percent }),
+      removeDiscount: () => set({ discountCode: null, discountPercent: 0 }),
     }),
     {
       name: "yamgurumi-cart",
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ items: state.items }),
+      partialize: (state) => ({ 
+        items: state.items,
+        discountCode: state.discountCode,
+        discountPercent: state.discountPercent
+      }),
     },
   ),
 );

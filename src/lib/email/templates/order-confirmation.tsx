@@ -1,4 +1,4 @@
-import { Html, Head, Body, Container, Section, Text, Heading, Tailwind, Hr } from '@react-email/components';
+import { Html, Head, Body, Container, Section, Text, Heading, Hr } from '@react-email/components';
 import * as React from 'react';
 
 export interface OrderEmailData {
@@ -16,64 +16,92 @@ interface OrderConfirmationEmailProps {
 }
 
 export const OrderConfirmationEmail = ({ data }: OrderConfirmationEmailProps) => {
-  // Default data for preview if not provided
   const emailData = data || {
     orderId: 'preview-123',
-    items: [{ name: 'Amigurumi de prueba', qty: 1, price: 10 }],
-    subtotal: 10,
-    discount: 0,
-    total: 10,
-    delivery: { name: 'Usuario Prueba', phone: '12345678', zone: 'Centro' }
+    items: [{ name: 'Oso Panda Amigurumi Tejido', qty: 1, price: 25.00 }],
+    subtotal: 25.00,
+    discount: 2.50,
+    discountCode: 'YAM-WELCOME10',
+    total: 22.50,
+    delivery: { name: 'Usuario Prueba', phone: '+503 7000-0000', zone: 'San Salvador, El Salvador' }
   };
 
   return (
     <Html>
       <Head />
-      <Tailwind>
-        <Body className="bg-gray-100 font-sans">
-          <Container className="bg-white my-10 mx-auto p-8 rounded-lg shadow-sm max-w-xl">
-            <Heading className="text-2xl text-center text-pink-600 font-bold mb-4">
-              ¡Gracias por tu pedido!
+      <Body style={{ backgroundColor: '#F8F5F0', fontFamily: 'system-ui, -apple-system, sans-serif', margin: 0, padding: '36px 12px' }}>
+        <Container style={{ backgroundColor: '#FFFFFF', border: '1px solid #EBE4D8', borderRadius: '24px', margin: '0 auto', padding: '36px 28px', maxWidth: '520px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+          
+          {/* Header Badge */}
+          <Section style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <span style={{ backgroundColor: '#F4EDE2', border: '1px solid #E2D5C3', color: '#B85C43', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1.5px', padding: '6px 16px', borderRadius: '9999px', display: 'inline-block' }}>
+              Pedido Recibido 🧶
+            </span>
+          </Section>
+
+          {/* Title */}
+          <Heading style={{ fontSize: '24px', fontWeight: '800', color: '#2A2421', textAlign: 'center', marginTop: '12px', marginBottom: '12px', lineHeight: '1.2' }}>
+            ¡Gracias por tu pedido!
+          </Heading>
+
+          {/* Subtitle */}
+          <Text style={{ fontSize: '14px', lineHeight: '1.6', color: '#574F4A', textAlign: 'center', margin: '0 0 24px 0' }}>
+            Hola <strong style={{ color: '#2A2421' }}>{emailData.delivery.name}</strong>, hemos recibido tu solicitud de pedido <span style={{ fontFamily: 'monospace', fontWeight: 'bold', color: '#B85C43' }}>#{emailData.orderId.slice(0, 8)}</span>. Nos pondremos en contacto contigo por WhatsApp para coordinar la entrega.
+          </Text>
+
+          {/* Items Box */}
+          <Section style={{ backgroundColor: '#FBF8F5', border: '1px solid #EBE4D8', borderRadius: '16px', padding: '18px 20px', marginBottom: '20px' }}>
+            <Heading style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', color: '#2A2421', margin: '0 0 12px 0' }}>
+              Resumen de tu pedido:
             </Heading>
-            <Text className="text-gray-700 text-base mb-6">
-              Hola {emailData.delivery.name}, hemos recibido tu pedido #{emailData.orderId.slice(0, 8)} y ya nos pondremos en contacto contigo por WhatsApp para coordinar la entrega.
-            </Text>
-            
-            <Heading className="text-lg text-gray-800 font-bold mb-3">Resumen de tu pedido:</Heading>
-            <Section className="mb-6">
-              {emailData.items.map((item, i) => (
-                <Text key={i} className="text-gray-700 my-1">
-                  • {item.qty}× {item.name} — ${(item.price * item.qty).toFixed(2)}
-                </Text>
-              ))}
-            </Section>
-            
-            <Hr className="border-gray-200 my-4" />
-            
-            <Section className="mb-6">
-              <Text className="text-gray-700 my-1">Subtotal: ${emailData.subtotal.toFixed(2)}</Text>
-              {emailData.discount > 0 && (
-                <Text className="text-pink-600 my-1">
-                  Descuento ({emailData.discountCode || 'Código'}): -${emailData.discount.toFixed(2)}
-                </Text>
-              )}
-              <Text className="text-gray-900 font-bold text-lg my-1">Total: ${emailData.total.toFixed(2)}</Text>
-            </Section>
-            
-            <Hr className="border-gray-200 my-4" />
-            
-            <Heading className="text-lg text-gray-800 font-bold mb-3">Datos de entrega:</Heading>
-            <Section className="text-gray-600 text-sm bg-gray-50 p-4 rounded-md">
-              <Text className="m-0 mb-1"><strong>Nombre:</strong> {emailData.delivery.name}</Text>
-              <Text className="m-0 mb-1"><strong>Teléfono:</strong> {emailData.delivery.phone}</Text>
-              <Text className="m-0 mb-1"><strong>Zona:</strong> {emailData.delivery.zone}</Text>
-              {emailData.delivery.notes && (
-                <Text className="m-0 mt-2"><strong>Notas:</strong> {emailData.delivery.notes}</Text>
-              )}
-            </Section>
-          </Container>
-        </Body>
-      </Tailwind>
+            {emailData.items.map((item, i) => (
+              <div key={i} style={{ borderBottom: '1px solid #EBE4D8', padding: '8px 0', fontSize: '13px', display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#574F4A', fontWeight: 500 }}>{item.qty}× {item.name}</span>
+                <span style={{ color: '#2A2421', fontWeight: 'bold' }}>${(item.price * item.qty).toFixed(2)}</span>
+              </div>
+            ))}
+          </Section>
+
+          {/* Totals */}
+          <Section style={{ padding: '0 4px', marginBottom: '20px', fontSize: '13px' }}>
+            <div style={{ padding: '4px 0', color: '#6E645E' }}>Subtotal: <strong>${emailData.subtotal.toFixed(2)}</strong></div>
+            {emailData.discount > 0 && (
+              <div style={{ padding: '4px 0', color: '#B85C43', fontWeight: 'bold' }}>
+                Descuento ({emailData.discountCode || 'Promo'}): -${emailData.discount.toFixed(2)}
+              </div>
+            )}
+            <Hr style={{ borderColor: '#EBE4D8', margin: '10px 0' }} />
+            <div style={{ padding: '4px 0', color: '#206776', fontSize: '16px', fontWeight: 'bold' }}>
+              Total: ${emailData.total.toFixed(2)}
+            </div>
+          </Section>
+
+          {/* Delivery Box */}
+          <Section style={{ backgroundColor: '#F4EDE2', border: '1px solid #E2D5C3', borderRadius: '16px', padding: '18px 20px', fontSize: '12px', color: '#574F4A' }}>
+            <Heading style={{ fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', color: '#B85C43', margin: '0 0 8px 0' }}>
+              Datos para la Entrega:
+            </Heading>
+            <p style={{ margin: '0 0 4px 0' }}><strong>Contacto:</strong> {emailData.delivery.name}</p>
+            <p style={{ margin: '0 0 4px 0' }}><strong>Teléfono:</strong> {emailData.delivery.phone}</p>
+            <p style={{ margin: '0 0 4px 0' }}><strong>Zona/Dirección:</strong> {emailData.delivery.zone}</p>
+            {emailData.delivery.notes && (
+              <p style={{ margin: '6px 0 0 0', fontStyle: 'italic', color: '#6E645E' }}><strong>Notas:</strong> {emailData.delivery.notes}</p>
+            )}
+          </Section>
+
+          <Hr style={{ borderColor: '#EBE4D8', margin: '28px 0 20px 0' }} />
+
+          {/* Footer */}
+          <Text style={{ fontSize: '11px', color: '#A0958C', textAlign: 'center', margin: 0, lineHeight: '1.5' }}>
+            © {new Date().getFullYear()} Yamgurumi. Todos los derechos reservados.
+            <br />
+            <strong style={{ color: '#6E645E', display: 'inline-block', marginTop: '6px' }}>
+              Yamgurumi • Hecho a mano punto por punto con amor 🧶
+            </strong>
+          </Text>
+
+        </Container>
+      </Body>
     </Html>
   );
 };

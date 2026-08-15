@@ -4,7 +4,7 @@ import { sendResetPasswordEmail } from '@/src/lib/email/send';
 import { resetRequestSchema } from '@/src/lib/validation/auth.schemas';
 import { randomBytes } from 'crypto';
 
-export async function requestResetAction(formData: FormData) {
+export async function requestResetAction(prevState: any, formData: FormData) {
   try {
     const data = Object.fromEntries(formData.entries());
     const validated = resetRequestSchema.safeParse(data);
