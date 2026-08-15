@@ -18,5 +18,5 @@ export async function logoutAction() {
     await clearAuthCookie();
   }
   
-  redirect('/auth/login');
+  redirect('/');
 }

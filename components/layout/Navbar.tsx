@@ -252,23 +252,6 @@ export default function Navbar({ session }: { session?: JWTPayload | null }) {
               <SearchIcon className="w-5 h-5 text-secondary" />
             </button>
 
-            {session ? (
-              <Link
-                href="/cuenta"
-                className="flex relative p-2.5 hover:bg-secondary-container/50 rounded-full transition-all duration-300 active:scale-95 items-center justify-center focus-ring tactile-press"
-                title="Mi Cuenta"
-              >
-                <MdPerson className="w-[22px] h-[22px] text-secondary" />
-              </Link>
-            ) : (
-              <Link
-                href="/auth/login"
-                className="hidden md:flex relative px-4 py-1.5 ml-1 border border-secondary text-secondary hover:bg-secondary hover:text-white rounded-full text-sm font-bold transition-all duration-300"
-              >
-                Iniciar Sesión
-              </Link>
-            )}
-
             <button
               onClick={openDrawer}
               className="relative p-2.5 hover:bg-secondary-container/50 rounded-full transition-all duration-300 active:scale-95 flex items-center justify-center focus-ring tactile-press"
@@ -281,6 +264,31 @@ export default function Navbar({ session }: { session?: JWTPayload | null }) {
                 </span>
               )}
             </button>
+
+            {session ? (
+              <Link
+                href="/mi-taller"
+                className="flex relative p-2.5 hover:bg-secondary-container/50 rounded-full transition-all duration-300 active:scale-95 items-center justify-center focus-ring tactile-press"
+                title="Mi Taller"
+              >
+                <MdPerson className="w-[22px] h-[22px] text-secondary" />
+              </Link>
+            ) : (
+              <div className="hidden md:flex items-center gap-2 ml-1">
+                <Link
+                  href="/auth/login"
+                  className="relative px-4 py-1.5 border border-secondary text-secondary hover:bg-secondary hover:text-white rounded-full text-sm font-bold transition-all duration-300"
+                >
+                  Iniciar Sesión
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="relative px-4 py-1.5 bg-secondary text-white border border-secondary hover:bg-secondary/90 rounded-full text-sm font-bold transition-all duration-300 shadow-sm"
+                >
+                  Registrarse
+                </Link>
+              </div>
+            )}
 
             <button
               className="md:hidden p-2 hover:bg-secondary-container/50 rounded-full transition-all duration-300 active:scale-95 flex items-center justify-center focus-ring"
@@ -357,6 +365,33 @@ export default function Navbar({ session }: { session?: JWTPayload | null }) {
               {link.label}
             </Link>
           ))}
+          
+          {!session && (
+            <div 
+              className={`flex flex-col gap-3 mt-4 pt-6 border-t border-outline-variant/20 transition-all duration-300 ${
+                isMobileOpen ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
+              }`}
+              style={{
+                transitionDelay: isMobileOpen ? `${80 + navLinks.length * 60}ms` : "0ms",
+                transitionProperty: "opacity, transform",
+              }}
+            >
+              <Link
+                href="/auth/login"
+                className="w-full text-center px-4 py-3.5 border-2 border-secondary text-secondary hover:bg-secondary hover:text-white rounded-2xl font-bold transition-colors"
+                onClick={closeMobile}
+              >
+                Iniciar Sesión
+              </Link>
+              <Link
+                href="/auth/register"
+                className="w-full text-center px-4 py-3.5 bg-secondary text-white border-2 border-secondary hover:bg-secondary/90 rounded-2xl font-bold transition-colors shadow-sm"
+                onClick={closeMobile}
+              >
+                Registrarse
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Drawer footer */}

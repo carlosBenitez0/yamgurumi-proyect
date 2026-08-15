@@ -43,6 +43,18 @@ export async function verifyEmailAction(token: string) {
       },
     });
 
+    // Generar cupón de bienvenida único del 10% (1 solo uso)
+    const welcomeCode = `BIENVENIDA10-${user.id.slice(-4).toUpperCase()}`;
+    await prisma.discountCode.create({
+      data: {
+        code: welcomeCode,
+        percent: 10,
+        userId: user.id,
+        usageLimit: 1,
+        usedCount: 0,
+      },
+    });
+
     // Crear sesión e iniciar sesión automáticamente
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7); // 7 days
     const session = await prisma.session.create({
@@ -62,7 +74,7 @@ export async function verifyEmailAction(token: string) {
     
     await setAuthCookie(jwt);
 
-    return { success: true, message: '¡Correo verificado! Tu cuenta ha sido creada con éxito' };
+    return { success: true, message: 'Tu cuenta ha sido creada con éxito y se ha acreditado tu cupón del 10%' };
   } catch (error) {
     console.error('Verification error:', error);
     return { success: false, error: 'Error al verificar el correo y crear la cuenta' };

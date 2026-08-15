@@ -1,4 +1,5 @@
 'use server';
+
 import prisma from '@/src/lib/prisma';
 import { hashPassword } from '@/src/lib/auth/password';
 import { registerSchema } from '@/src/lib/validation/auth.schemas';
@@ -38,12 +39,19 @@ export async function registerAction(prevState: any, formData: FormData) {
     // Enviar email con el JWT
     try {
       await sendVerificationEmail(email, token);
-    } catch (e) {
-      console.error('Error enviando email:', e);
-      return { success: false, error: 'Error al enviar el correo de verificación' };
+    } catch (e: any) {
+      console.error('Error enviando email de verificación:', e);
+      return { 
+        success: false, 
+        error: `No se pudo entregar el correo de verificación (${e?.message || 'Error de entrega'}). Revisa que tu dirección sea correcta.` 
+      };
     }
 
-    return { success: true, message: 'Revisa tu correo para verificar tu cuenta y completar el registro' };
+    return { 
+      success: true, 
+      emailSentTo: email,
+      message: 'Te hemos enviado un correo con tu enlace de confirmación. Revisa tu bandeja de entrada o spam.' 
+    };
   } catch (error) {
     console.error('Register error:', error);
     return { success: false, error: 'Ocurrió un error al registrarse' };

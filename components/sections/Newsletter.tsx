@@ -1,23 +1,20 @@
 'use client'
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import SectionWrapper from "@/components/ui/SectionWrapper";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 import { YarnThread, StitchDots } from "@/components/ui/CraftBackground";
-import { MdCheckCircle } from "react-icons/md";
+import { MdCheckCircle, MdContentCopy } from "react-icons/md";
+import { subscribeAction } from "@/src/actions/newsletter/subscribe";
 
 export default function Newsletter() {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
+  const [state, action, isPending] = useActionState(subscribeAction, null);
+  const [copied, setCopied] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-    setStatus("loading");
-    setTimeout(() => {
-      setStatus("success");
-      setEmail("");
-    }, 1200);
+  const handleCopy = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -51,43 +48,78 @@ export default function Newsletter() {
               Recibe un <strong className="text-primary font-semibold">10% de descuento</strong> en tu primer pedido, acceso anticipado a nuevas colecciones y patrones gratuitos mensuales.
             </p>
 
-            {status === "success" ? (
-              <div className="bg-secondary-container/60 border border-secondary/30 rounded-2xl px-6 py-4 inline-flex items-center gap-3 animate-fade-in shadow-sm">
-                <MdCheckCircle className="text-secondary text-[28px]" />
-                <span className="font-body text-body-md text-on-surface font-semibold">
-                  ¡Gracias por unirte! Te hemos enviado tu cupón al correo.
-                </span>
+            {state && state.success ? (
+              <div className="flex flex-col items-center gap-4 animate-fade-in">
+                <div className="bg-secondary-container/60 border border-secondary/30 rounded-2xl px-6 py-4 inline-flex items-center gap-3 shadow-sm">
+                  <MdCheckCircle className="text-secondary text-[28px]" />
+                  <span className="font-body text-body-md text-on-surface font-semibold text-left">
+                    {state.message}
+                  </span>
+                </div>
+                
+                {state.discountCode && (
+                  <div className="bg-surface-container-lowest border border-primary-container/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-3 shadow-card mt-2">
+                    <div className="text-left">
+                      <span className="text-[10px] uppercase font-bold text-on-surface-variant/60 block">Tu Código de Descuento:</span>
+                      <strong className="text-lg font-headline font-bold text-secondary tracking-wider">{state.discountCode}</strong>
+                    </div>
+                    <button
+                      onClick={() => handleCopy(state.discountCode!)}
+                      className="flex items-center gap-1.5 py-2 px-4 bg-secondary text-white font-bold rounded-xl text-xs hover:bg-secondary/90 transition-colors cursor-pointer"
+                    >
+                      <MdContentCopy />
+                      {copied ? '¡Copiado!' : 'Copiar código'}
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
-              <form
-                onSubmit={handleSubmit}
-                className="w-full max-w-md flex flex-col sm:flex-row gap-3 items-center justify-center"
-              >
-                <input
-                  type="email"
-                  required
-                  placeholder="Tu correo electrónico..."
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={status === "loading"}
-                  className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl px-5 py-3.5 w-full sm:flex-1 focus:ring-2 focus:ring-secondary focus:border-transparent text-body-md transition-all outline-none font-body text-on-surface placeholder:text-on-surface-variant/50 shadow-sm"
-                />
-                <button
-                  type="submit"
-                  disabled={status === "loading"}
-                  className="bg-secondary text-on-secondary font-bold px-7 py-3.5 rounded-full hover:bg-secondary/90 tactile-press transition-all disabled:opacity-50 font-body text-body-md whitespace-nowrap shadow-button w-full sm:w-auto"
-                  style={{ transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)" }}
+              <div className="w-full">
+                {state && !state.success && (
+                  <div className="bg-error-container text-error px-4 py-2.5 rounded-xl mb-4 text-xs font-bold font-body text-left border border-error/15 inline-block mx-auto max-w-sm">
+                    {state.error}
+                  </div>
+                )}
+                
+                <form
+                  action={action}
+                  className="w-full max-w-md flex flex-col sm:flex-row gap-3 items-center justify-center relative mx-auto"
                 >
-                  {status === "loading" ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="w-4 h-4 border-2 border-on-secondary/30 border-t-on-secondary rounded-full animate-spin" />
-                      Enviando...
-                    </span>
-                  ) : (
-                    "Suscribirme"
-                  )}
-                </button>
-              </form>
+                  {/* Honeypot field for spam protection */}
+                  <input
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    className="absolute opacity-0 pointer-events-none"
+                    placeholder="Dejar vacío si eres humano"
+                  />
+
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    placeholder="Tu correo electrónico..."
+                    disabled={isPending}
+                    className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl px-5 py-3.5 w-full sm:flex-1 focus:ring-2 focus:ring-secondary focus:border-transparent text-body-md transition-all outline-none font-body text-on-surface placeholder:text-on-surface-variant/50 shadow-sm"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isPending}
+                    className="bg-secondary text-on-secondary font-bold px-7 py-3.5 rounded-full hover:bg-secondary/90 tactile-press transition-all disabled:opacity-50 font-body text-body-md whitespace-nowrap shadow-button w-full sm:w-auto cursor-pointer"
+                    style={{ transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)" }}
+                  >
+                    {isPending ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="w-4 h-4 border-2 border-on-secondary/30 border-t-on-secondary rounded-full animate-spin" />
+                        Enviando...
+                      </span>
+                    ) : (
+                      "Suscribirme"
+                    )}
+                  </button>
+                </form>
+              </div>
             )}
           </div>
         </div>
