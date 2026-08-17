@@ -33,8 +33,8 @@ const DEFAULT_MATERIALS = [
   'Lana chenille / peluche',
 ];
 
-// Helper para comprimir imágenes locales en el navegador a máximo 1200px
-async function compressImageFile(file: File, maxDimension = 1200, quality = 0.85): Promise<string> {
+// Helper para comprimir y convertir imágenes locales a formato JPEG ultraliviano (~80KB - 200KB)
+async function compressImageFile(file: File, maxDimension = 900, quality = 0.78): Promise<{ dataUrl: string; sizeKb: number }> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -59,15 +59,26 @@ async function compressImageFile(file: File, maxDimension = 1200, quality = 0.85
 
         const ctx = canvas.getContext('2d');
         if (!ctx) {
-          resolve(e.target?.result as string);
+          const rawResult = e.target?.result as string;
+          const approxKb = Math.round((rawResult.length * 0.75) / 1024);
+          resolve({ dataUrl: rawResult, sizeKb: approxKb });
           return;
         }
 
+        // Fondo blanco para convertir transparencias PNG sin artefactos negros
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+
         ctx.drawImage(img, 0, 0, width, height);
         const dataUrl = canvas.toDataURL('image/jpeg', quality);
-        resolve(dataUrl);
+        const sizeKb = Math.round((dataUrl.length * 0.75) / 1024);
+        resolve({ dataUrl, sizeKb });
       };
-      img.onerror = () => resolve(e.target?.result as string);
+      img.onerror = () => {
+        const rawResult = e.target?.result as string;
+        const approxKb = Math.round((rawResult.length * 0.75) / 1024);
+        resolve({ dataUrl: rawResult, sizeKb: approxKb });
+      };
       img.src = e.target?.result as string;
     };
     reader.onerror = (err) => reject(err);
@@ -113,6 +124,7 @@ export default function AdminNewProductClient({
   // Estados de Imagen
   const [imageTab, setImageTab] = useState<'local' | 'url'>('local');
   const [localImageName, setLocalImageName] = useState('');
+  const [imageSizeKb, setImageSizeKb] = useState<number | null>(null);
 
   // Estados de Tamaño
   const [sizeSelect, setSizeSelect] = useState('Mediano');
@@ -191,9 +203,10 @@ export default function AdminNewProductClient({
     try {
       setIsCompressing(true);
       setErrorMsg('');
-      const compressedDataUrl = await compressImageFile(file, 1200, 0.85);
-      setFormData((prev) => ({ ...prev, imageUrl: compressedDataUrl }));
+      const { dataUrl, sizeKb } = await compressImageFile(file, 900, 0.78);
+      setFormData((prev) => ({ ...prev, imageUrl: dataUrl }));
       setLocalImageName(file.name);
+      setImageSizeKb(sizeKb);
     } catch (err) {
       setErrorMsg('No se pudo procesar la foto elegida. Por favor intenta con otra imagen en formato PNG o JPG.');
     } finally {
@@ -648,9 +661,9 @@ export default function AdminNewProductClient({
                 </div>
                 <div className="space-y-1">
                   <span className="text-xs font-semibold text-stone-800 block">Vista previa de la foto</span>
-                  <span className="text-[11px] text-stone-500 block">
+                  <span className="text-[11px] text-stone-500 block font-medium">
                     {formData.imageUrl.startsWith('data:')
-                      ? '📷 Imagen optimizada desde el disco local'
+                      ? `📷 Foto optimizada a formato JPEG (${imageSizeKb ? `${imageSizeKb} KB` : 'ultraliviana'})`
                       : '🌐 Imagen vinculada por URL'}
                   </span>
                   <button
