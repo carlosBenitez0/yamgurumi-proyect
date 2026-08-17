@@ -212,12 +212,16 @@ export default function AdminProductsClient({
                         <span>{product.category.name}</span>
                       </span>
                     </td>
-                    <td className="px-3.5 py-3 font-bold text-stone-800">
-                      ${product.price.toFixed(2)}
-                      {product.salePrice && (
-                        <span className="ml-1 text-[11px] text-rose-600 font-normal line-through">
-                          ${product.salePrice.toFixed(2)}
-                        </span>
+                    <td className="px-3.5 py-3">
+                      {product.salePrice ? (
+                        <div className="flex items-center gap-1.5 font-bold">
+                          <span className="text-rose-700">${product.salePrice.toFixed(2)}</span>
+                          <span className="text-[11px] text-stone-400 font-normal line-through">
+                            ${product.price.toFixed(2)}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="font-bold text-stone-800">${product.price.toFixed(2)}</span>
                       )}
                     </td>
                     <td className="px-3.5 py-3">
