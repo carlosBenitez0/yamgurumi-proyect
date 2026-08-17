@@ -21,7 +21,7 @@ interface CategoryOption {
   icon?: string | null;
 }
 
-const COMMON_MATERIALS = [
+const DEFAULT_MATERIALS = [
   'Hilo de algodón 100% hipoalergénico',
   'Ojos de seguridad de plástico',
   'Relleno de vellón siliconado',
@@ -50,6 +50,53 @@ export default function AdminNewProductClient({
   // Estados de Tamaño
   const [sizeSelect, setSizeSelect] = useState('Mediano');
   const [customSize, setCustomSize] = useState('');
+
+  // Estados de Materiales Predeterminados (Añadir / Quitar de la lista)
+  const [presetMaterials, setPresetMaterials] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('yamgurumi_preset_materials');
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch (e) {}
+      }
+    }
+    return DEFAULT_MATERIALS;
+  });
+
+  const [newPresetInput, setNewPresetInput] = useState('');
+  const [showAddPresetForm, setShowAddPresetForm] = useState(false);
+
+  const handleAddPreset = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const trimmed = newPresetInput.trim();
+    if (!trimmed) return;
+    if (presetMaterials.some((m) => m.toLowerCase() === trimmed.toLowerCase())) {
+      setNewPresetInput('');
+      setShowAddPresetForm(false);
+      return;
+    }
+
+    const updated = [...presetMaterials, trimmed];
+    setPresetMaterials(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('yamgurumi_preset_materials', JSON.stringify(updated));
+    }
+    setNewPresetInput('');
+    setShowAddPresetForm(false);
+
+    // Seleccionar automáticamente el nuevo material en el producto actual
+    toggleMaterial(trimmed);
+  };
+
+  const handleRemovePreset = (materialToRemove: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = presetMaterials.filter((m) => m !== materialToRemove);
+    setPresetMaterials(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('yamgurumi_preset_materials', JSON.stringify(updated));
+    }
+  };
 
   const [formData, setFormData] = useState({
     name: '',
@@ -315,35 +362,82 @@ export default function AdminNewProductClient({
                 />
               </div>
 
-              {/* LISTADO DE MATERIALES COMUNES (SELECCIÓN RÁPIDA CON CHIPS) */}
+              {/* LISTADO DE MATERIALES COMUNES (SELECCIÓN RÁPIDA Y PERSONALIZACIÓN DE CHIPS) */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                   <label className="block text-xs font-semibold text-stone-700">
                     Materiales Utilizados
                   </label>
-                  <span className="text-[11px] text-stone-400">
-                    Haz clic en los materiales comunes para añadirlos automáticamente
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddPresetForm(!showAddPresetForm)}
+                    className="text-[11px] font-semibold text-[#206776] hover:underline inline-flex items-center gap-1 self-start sm:self-auto"
+                  >
+                    <span>{showAddPresetForm ? 'Ocultar formulario' : '+ Agregar nuevo material a la lista'}</span>
+                  </button>
                 </div>
 
-                {/* CHIPS SELECCIONABLES */}
-                <div className="flex flex-wrap gap-1.5 p-3 bg-stone-50 border border-stone-200/80 rounded-[8px]">
-                  {COMMON_MATERIALS.map((mat) => {
-                    const selected = isMaterialSelected(mat);
-                    return (
+                {/* FORMULARIO RÁPIDO PARA AGREGAR NUEVO MATERIAL A LA LISTA PREDETERMINADA */}
+                {showAddPresetForm && (
+                  <div className="p-3 bg-teal-50/70 border border-teal-200/80 rounded-[8px] space-y-2 animate-in slide-in-from-top-1 duration-150">
+                    <label className="block text-xs font-bold text-teal-900">
+                      Añadir nuevo material predeterminado:
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newPresetInput}
+                        onChange={(e) => setNewPresetInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddPreset();
+                          }
+                        }}
+                        placeholder="Ej: Cinta de raso, Lana Velvet, Relleno perfumado..."
+                        className="flex-1 px-3 py-1.5 bg-white border border-teal-300 rounded-[6px] text-xs text-stone-800 focus:outline-none focus:border-teal-700"
+                      />
                       <button
                         type="button"
+                        onClick={() => handleAddPreset()}
+                        className="px-3 py-1.5 bg-[#206776] hover:bg-[#1a5562] text-white rounded-[6px] text-xs font-semibold shrink-0 transition-colors"
+                      >
+                        Añadir
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-teal-700">
+                      Se guardará en tu lista predeterminada para que puedas volver a seleccionarlo en cualquier producto.
+                    </p>
+                  </div>
+                )}
+
+                {/* CHIPS SELECCIONABLES Y ELIMINABLES */}
+                <div className="flex flex-wrap gap-1.5 p-3 bg-stone-50 border border-stone-200/80 rounded-[8px]">
+                  {presetMaterials.map((mat) => {
+                    const selected = isMaterialSelected(mat);
+                    return (
+                      <div
                         key={mat}
                         onClick={() => toggleMaterial(mat)}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-[11px] font-medium transition-all ${
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] text-[11px] font-medium cursor-pointer transition-all group ${
                           selected
                             ? 'bg-[#72594e] text-white shadow-2xs'
                             : 'bg-white text-stone-700 border border-stone-200 hover:border-amber-700 hover:text-amber-900'
                         }`}
                       >
-                        {selected && <MdCheck className="text-xs text-amber-200" />}
+                        {selected && <MdCheck className="text-xs text-amber-200 shrink-0" />}
                         <span>{mat}</span>
-                      </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleRemovePreset(mat, e)}
+                          className={`ml-0.5 p-0.5 rounded-full hover:bg-stone-200/80 transition-colors ${
+                            selected ? 'hover:bg-[#594339] text-amber-200' : 'text-stone-400 hover:text-rose-600'
+                          }`}
+                          title={`Eliminar "${mat}" de la lista predeterminada`}
+                        >
+                          <MdClose className="text-[11px]" />
+                        </button>
+                      </div>
                     );
                   })}
                 </div>
