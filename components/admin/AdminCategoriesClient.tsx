@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
-import { MdCategory, MdAdd, MdEdit, MdDelete, MdCheck, MdClose } from 'react-icons/md';
+import { MdCategory, MdAdd, MdDelete, MdClose } from 'react-icons/md';
 import {
   createCategoryAction,
   updateCategoryAction,
@@ -19,6 +19,26 @@ interface CategoryItem {
   productsCount: number;
 }
 
+function sanitizeCategoryError(error: any): string {
+  const msg = typeof error === 'string' ? error : error?.message || '';
+
+  if (msg.includes('asociados') || msg.includes('productos asociados')) {
+    return 'No es posible eliminar esta categoría porque actualmente contiene productos asociados en la tienda.';
+  }
+  if (msg.includes('unique constraint') || msg.includes('slug') || msg.includes('already exists')) {
+    return 'Ya existe una categoría registrada con este mismo nombre. Por favor intenta con otro nombre.';
+  }
+  if (msg.includes('No autorizado') || msg.includes('permisos') || msg.includes('JWT') || msg.includes('sesión')) {
+    return 'Tu sesión de administrador ha caducado. Por favor vuelve a iniciar sesión.';
+  }
+
+  if (msg && !msg.includes('Error:') && !msg.includes('at ') && !msg.includes('TypeError') && !msg.includes('ReferenceError')) {
+    return msg;
+  }
+
+  return 'No se pudo realizar la acción en la categoría. Por favor verifica e inténtalo nuevamente.';
+}
+
 export default function AdminCategoriesClient({
   initialCategories,
 }: {
@@ -26,7 +46,6 @@ export default function AdminCategoriesClient({
 }) {
   const [categories, setCategories] = useState<CategoryItem[]>(initialCategories);
   const [isCreating, setIsCreating] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -40,7 +59,10 @@ export default function AdminCategoriesClient({
     e.preventDefault();
     setErrorMsg('');
 
-    if (!formData.name.trim()) return;
+    if (!formData.name.trim()) {
+      setErrorMsg('Por favor ingresa un nombre para la categoría.');
+      return;
+    }
 
     startTransition(async () => {
       try {
@@ -62,12 +84,13 @@ export default function AdminCategoriesClient({
           setFormData({ name: '', icon: '🧸', description: '' });
         }
       } catch (err: any) {
-        setErrorMsg(err.message || 'Error al crear la categoría');
+        setErrorMsg(sanitizeCategoryError(err));
       }
     });
   };
 
   const handleToggleActive = (id: string, currentActive: boolean) => {
+    setErrorMsg('');
     startTransition(async () => {
       try {
         const res = await updateCategoryAction(id, { isActive: !currentActive });
@@ -77,13 +100,14 @@ export default function AdminCategoriesClient({
           );
         }
       } catch (err: any) {
-        alert(err.message || 'Error al actualizar categoría');
+        setErrorMsg(sanitizeCategoryError(err));
       }
     });
   };
 
   const handleDelete = (id: string, name: string) => {
-    if (!confirm(`¿Eliminar la categoría "${name}"?`)) return;
+    setErrorMsg('');
+    if (!confirm(`¿Estás seguro de eliminar la categoría "${name}"?`)) return;
 
     startTransition(async () => {
       try {
@@ -92,7 +116,7 @@ export default function AdminCategoriesClient({
           setCategories((prev) => prev.filter((c) => c.id !== id));
         }
       } catch (err: any) {
-        alert(err.message || 'Error al eliminar categoría');
+        setErrorMsg(sanitizeCategoryError(err));
       }
     });
   };
@@ -111,7 +135,10 @@ export default function AdminCategoriesClient({
           </p>
         </div>
         <button
-          onClick={() => setIsCreating(!isCreating)}
+          onClick={() => {
+            setErrorMsg('');
+            setIsCreating(!isCreating);
+          }}
           className="px-4 py-2 bg-[#72594e] hover:bg-[#60493f] text-white font-semibold text-xs rounded-[8px] shadow-xs flex items-center gap-1.5 self-start sm:self-auto transition-colors"
         >
           <MdAdd className="text-base" />
@@ -120,8 +147,18 @@ export default function AdminCategoriesClient({
       </div>
 
       {errorMsg && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-[8px] text-rose-800 text-xs font-medium">
-          ⚠️ {errorMsg}
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-[8px] text-rose-800 text-xs font-semibold flex items-center justify-between animate-in slide-in-from-top-1 duration-150">
+          <span className="flex items-center gap-2">
+            <span>⚠️</span>
+            <span>{errorMsg}</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setErrorMsg('')}
+            className="text-rose-600 hover:text-rose-800 p-1 rounded hover:bg-rose-100 transition-colors"
+          >
+            <MdClose className="text-base" />
+          </button>
         </div>
       )}
 

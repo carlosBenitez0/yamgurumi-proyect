@@ -33,6 +33,72 @@ const DEFAULT_MATERIALS = [
   'Lana chenille / peluche',
 ];
 
+// Helper para comprimir imágenes locales en el navegador a máximo 1200px
+async function compressImageFile(file: File, maxDimension = 1200, quality = 0.85): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(e.target?.result as string);
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(dataUrl);
+      };
+      img.onerror = () => resolve(e.target?.result as string);
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+}
+
+// Sanitizador de errores técnicos a mensajes comprensibles para el usuario
+function sanitizeErrorMessage(error: any): string {
+  const msg = typeof error === 'string' ? error : error?.message || '';
+
+  if (msg.includes('Body exceeded') || msg.includes('limit')) {
+    return 'La fotografía seleccionada es muy pesada. Por favor intenta seleccionar otra foto o reducir su resolución.';
+  }
+  if (msg.includes('No autorizado') || msg.includes('permisos') || msg.includes('JWT') || msg.includes('sesión')) {
+    return 'Tu sesión de administrador ha caducado. Por favor vuelve a iniciar sesión en el panel.';
+  }
+  if (msg.includes('unique constraint') || msg.includes('slug')) {
+    return 'Ya existe un amigurumi registrado con este mismo nombre. Intenta utilizar un nombre ligeramente diferente.';
+  }
+  if (msg.includes('fetch failed') || msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+    return 'Ocurrió un inconveniente de conexión con el servidor. Revisa tu conexión a internet e inténtalo de nuevo.';
+  }
+
+  if (msg && !msg.includes('Error:') && !msg.includes('at ') && !msg.includes('TypeError') && !msg.includes('ReferenceError') && !msg.includes('Prisma')) {
+    return msg;
+  }
+
+  return 'No se pudo guardar el producto debido a un inconveniente con los datos ingresados. Por favor revisa el formulario e inténtalo de nuevo.';
+}
+
 export default function AdminNewProductClient({
   categories,
 }: {
@@ -42,6 +108,7 @@ export default function AdminNewProductClient({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState('');
+  const [isCompressing, setIsCompressing] = useState(false);
 
   // Estados de Imagen
   const [imageTab, setImageTab] = useState<'local' | 'url'>('local');
@@ -51,7 +118,7 @@ export default function AdminNewProductClient({
   const [sizeSelect, setSizeSelect] = useState('Mediano');
   const [customSize, setCustomSize] = useState('');
 
-  // Estados de Materiales Predeterminados (Añadir / Quitar de la lista)
+  // Estados de Materiales Predeterminados
   const [presetMaterials, setPresetMaterials] = useState<string[]>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('yamgurumi_preset_materials');
@@ -67,6 +134,19 @@ export default function AdminNewProductClient({
   const [newPresetInput, setNewPresetInput] = useState('');
   const [showAddPresetForm, setShowAddPresetForm] = useState(false);
   const [materialToDelete, setMaterialToDelete] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    categoryId: categories[0]?.id || '',
+    price: '',
+    salePrice: '',
+    stock: '10',
+    description: '',
+    materials: 'Hilo de algodón 100% hipoalergénico, ojos de seguridad, vellón siliconado',
+    imageUrl: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=800&q=80',
+    isFeatured: false,
+    isActive: true,
+  });
 
   const handleAddPreset = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -86,7 +166,6 @@ export default function AdminNewProductClient({
     setNewPresetInput('');
     setShowAddPresetForm(false);
 
-    // Seleccionar automáticamente el nuevo material en el producto actual
     toggleMaterial(trimmed);
   };
 
@@ -99,42 +178,29 @@ export default function AdminNewProductClient({
     setMaterialToDelete(null);
   };
 
-  const [formData, setFormData] = useState({
-    name: '',
-    categoryId: categories[0]?.id || '',
-    price: '',
-    salePrice: '',
-    stock: '10',
-    description: '',
-    materials: 'Hilo de algodón 100% hipoalergénico, ojos de seguridad, vellón siliconado',
-    imageUrl: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=800&q=80',
-    isFeatured: false,
-    isActive: true,
-  });
-
-  // Manejo de carga de archivos locales
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Manejo con compresión de carga de archivos locales
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMsg('La imagen seleccionada supera el tamaño máximo permitido de 5MB.');
+    if (file.size > 12 * 1024 * 1024) {
+      setErrorMsg('La imagen seleccionada supera el límite máximo permitido de 12MB.');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (dataUrl) {
-        setFormData((prev) => ({ ...prev, imageUrl: dataUrl }));
-        setLocalImageName(file.name);
-        setErrorMsg('');
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      setIsCompressing(true);
+      setErrorMsg('');
+      const compressedDataUrl = await compressImageFile(file, 1200, 0.85);
+      setFormData((prev) => ({ ...prev, imageUrl: compressedDataUrl }));
+      setLocalImageName(file.name);
+    } catch (err) {
+      setErrorMsg('No se pudo procesar la foto elegida. Por favor intenta con otra imagen en formato PNG o JPG.');
+    } finally {
+      setIsCompressing(false);
+    }
   };
 
-  // Alternar chips de materiales comunes
   const toggleMaterial = (material: string) => {
     const currentList = formData.materials
       .split(',')
@@ -157,42 +223,40 @@ export default function AdminNewProductClient({
     return currentList.includes(material.toLowerCase());
   };
 
-  // Envío y validación del formulario
+  // Envío y validación del formulario con manejo amigable de excepciones
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
-    // Validaciones
     if (!formData.name.trim()) {
-      setErrorMsg('Por favor ingresa un nombre para el producto.');
+      setErrorMsg('Por favor ingresa un nombre claro para el producto.');
       return;
     }
 
     if (!formData.categoryId) {
-      setErrorMsg('Por favor selecciona una categoría.');
+      setErrorMsg('Por favor selecciona una categoría de la lista.');
       return;
     }
 
-    // Validación de Tamaño Personalizado
     const finalSize = sizeSelect === 'Personalizado' ? customSize.trim() : sizeSelect;
 
     if (sizeSelect === 'Personalizado' && !customSize.trim()) {
-      setErrorMsg('Por favor especifica el tamaño personalizado a mano en el campo correspondiente.');
+      setErrorMsg('Por favor escribe el tamaño personalizado a mano en el campo correspondiente.');
       return;
     }
 
     if (!finalSize) {
-      setErrorMsg('Por favor selecciona o especifica un tamaño válido para el producto.');
+      setErrorMsg('Por favor selecciona o especifica un tamaño válido.');
       return;
     }
 
     if (!formData.price || Number(formData.price) <= 0) {
-      setErrorMsg('Por favor ingresa un precio válido mayor a 0.');
+      setErrorMsg('Por favor ingresa un precio válido mayor a $0.00.');
       return;
     }
 
     if (!formData.imageUrl) {
-      setErrorMsg('Por favor sube una foto desde tu equipo o proporciona una URL de imagen.');
+      setErrorMsg('Por favor carga una fotografía del amigurumi o ingresa una URL válida.');
       return;
     }
 
@@ -216,7 +280,7 @@ export default function AdminNewProductClient({
           router.push('/admin/productos');
         }
       } catch (err: any) {
-        setErrorMsg(err.message || 'Error al guardar el producto');
+        setErrorMsg(sanitizeErrorMessage(err));
       }
     });
   };
@@ -246,7 +310,7 @@ export default function AdminNewProductClient({
 
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || isCompressing}
           className="px-4 py-2 bg-[#72594e] hover:bg-[#60493f] text-white font-semibold text-xs rounded-[8px] shadow-xs flex items-center gap-1.5 transition-colors disabled:opacity-50"
         >
           <MdSave className="text-base" />
@@ -255,12 +319,16 @@ export default function AdminNewProductClient({
       </div>
 
       {errorMsg && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-[8px] text-rose-800 text-xs font-semibold flex items-center justify-between">
-          <span>⚠️ {errorMsg}</span>
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-[8px] text-rose-800 text-xs font-semibold flex items-center justify-between animate-in slide-in-from-top-1 duration-150">
+          <span className="flex items-center gap-2">
+            <span>⚠️</span>
+            <span>{errorMsg}</span>
+          </span>
           <button
             type="button"
             onClick={() => setErrorMsg('')}
-            className="text-rose-600 hover:text-rose-800"
+            className="text-rose-600 hover:text-rose-800 p-1 rounded hover:bg-rose-100 transition-colors"
+            title="Cerrar aviso"
           >
             <MdClose className="text-base" />
           </button>
@@ -312,7 +380,6 @@ export default function AdminNewProductClient({
                   </select>
                 </div>
 
-                {/* SELECCIÓN Y VALIDACIÓN DE TAMAÑO CON OPCIÓN DE ESCRIBIR A MANO */}
                 <div>
                   <label className="block text-xs font-semibold text-stone-700 mb-1">
                     Tamaño del Amigurumi *
@@ -330,7 +397,6 @@ export default function AdminNewProductClient({
                 </div>
               </div>
 
-              {/* CAMPO ADICIONAL CUANDO SE SELECCIONA TAMANO A MANO */}
               {sizeSelect === 'Personalizado' && (
                 <div className="p-3.5 bg-amber-50/60 border border-amber-200/80 rounded-[8px] space-y-1.5 animate-in slide-in-from-top-1 duration-150">
                   <label className="block text-xs font-bold text-amber-900">
@@ -363,7 +429,7 @@ export default function AdminNewProductClient({
                 />
               </div>
 
-              {/* LISTADO DE MATERIALES COMUNES (SELECCIÓN RÁPIDA Y PERSONALIZACIÓN DE CHIPS) */}
+              {/* LISTADO DE MATERIALES COMUNES */}
               <div className="space-y-2">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                   <label className="block text-xs font-semibold text-stone-700">
@@ -378,7 +444,6 @@ export default function AdminNewProductClient({
                   </button>
                 </div>
 
-                {/* FORMULARIO RÁPIDO PARA AGREGAR NUEVO MATERIAL A LA LISTA PREDETERMINADA */}
                 {showAddPresetForm && (
                   <div className="p-3 bg-teal-50/70 border border-teal-200/80 rounded-[8px] space-y-2 animate-in slide-in-from-top-1 duration-150">
                     <label className="block text-xs font-bold text-teal-900">
@@ -412,7 +477,6 @@ export default function AdminNewProductClient({
                   </div>
                 )}
 
-                {/* CHIPS SELECCIONABLES Y ELIMINABLES CON CONFIRMACIÓN */}
                 <div className="flex flex-wrap gap-1.5 p-3 bg-stone-50 border border-stone-200/80 rounded-[8px]">
                   {presetMaterials.map((mat) => {
                     const selected = isMaterialSelected(mat);
@@ -491,7 +555,6 @@ export default function AdminNewProductClient({
                 Fotografía del Producto *
               </h3>
 
-              {/* TABS LOCAL / URL */}
               <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-[6px]">
                 <button
                   type="button"
@@ -521,7 +584,6 @@ export default function AdminNewProductClient({
               </div>
             </div>
 
-            {/* OPCIÓN 1: SELECCIONAR IMAGEN DESDE EQUIPO LOCAL */}
             {imageTab === 'local' && (
               <div className="space-y-3">
                 <input
@@ -541,10 +603,10 @@ export default function AdminNewProductClient({
                   </div>
                   <div>
                     <p className="font-bold text-xs text-stone-800">
-                      Haz clic para seleccionar una foto desde tu computadora
+                      {isCompressing ? 'Optimizando imagen...' : 'Haz clic para seleccionar una foto desde tu computadora'}
                     </p>
                     <p className="text-[11px] text-stone-400 mt-0.5">
-                      Soporta archivos PNG, JPG, WEBP o GIF (Máx. 5MB)
+                      Soporta fotos PNG, JPG o WEBP (Optimizadas automáticamente)
                     </p>
                   </div>
                   {localImageName && (
@@ -557,7 +619,6 @@ export default function AdminNewProductClient({
               </div>
             )}
 
-            {/* OPCIÓN 2: INGRESAR URL DE IMAGEN EXTERNA */}
             {imageTab === 'url' && (
               <div className="space-y-2">
                 <label className="block text-xs font-semibold text-stone-700">
@@ -576,7 +637,6 @@ export default function AdminNewProductClient({
               </div>
             )}
 
-            {/* VISTA PREVIA DE LA IMAGEN CARGADA */}
             {formData.imageUrl && (
               <div className="pt-2 flex items-center gap-4">
                 <div className="w-20 h-20 rounded-[8px] overflow-hidden border border-stone-200 bg-stone-100 shrink-0 relative shadow-2xs">
@@ -590,7 +650,7 @@ export default function AdminNewProductClient({
                   <span className="text-xs font-semibold text-stone-800 block">Vista previa de la foto</span>
                   <span className="text-[11px] text-stone-500 block">
                     {formData.imageUrl.startsWith('data:')
-                      ? '📷 Imagen subida desde el disco local'
+                      ? '📷 Imagen optimizada desde el disco local'
                       : '🌐 Imagen vinculada por URL'}
                   </span>
                   <button
