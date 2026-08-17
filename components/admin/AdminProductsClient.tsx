@@ -257,7 +257,7 @@ export default function AdminProductsClient({
                         ) : (
                           <>
                             <MdVisibilityOff className="text-xs text-amber-600 shrink-0" />
-                            <span>Oculto (Haz clic para Reactivar)</span>
+                            <span>Oculto</span>
                           </>
                         )}
                       </button>
