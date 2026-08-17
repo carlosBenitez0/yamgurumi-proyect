@@ -49,7 +49,7 @@ export default function AdminNewProductPage() {
                 <input
                   type="text"
                   placeholder="Ej: Oso Teddy Tejido a Mano en Crochet"
-                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700"
+                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700"
                 />
               </div>
 
@@ -58,7 +58,7 @@ export default function AdminNewProductPage() {
                   <label className="block text-xs font-semibold text-stone-700 mb-1">
                     Categoría *
                   </label>
-                  <select className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs text-stone-800 focus:outline-none focus:border-amber-700">
+                  <select className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 focus:outline-none focus:border-amber-700">
                     <option value="">Selecciona una categoría</option>
                     <option value="munecos">Muñecos 🧸</option>
                     <option value="llaveros">Llaveros 🔑</option>
@@ -71,7 +71,7 @@ export default function AdminNewProductPage() {
                   <label className="block text-xs font-semibold text-stone-700 mb-1">
                     Tamaño del Amigurumi
                   </label>
-                  <select defaultValue="Mediano" className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs text-stone-800 focus:outline-none focus:border-amber-700">
+                  <select defaultValue="Mediano" className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 focus:outline-none focus:border-amber-700">
                     <option value="Mini">Mini (5 - 10 cm)</option>
                     <option value="Mediano">Mediano (15 - 22 cm)</option>
                     <option value="Grande">Grande (25 - 40 cm)</option>
@@ -86,7 +86,7 @@ export default function AdminNewProductPage() {
                 <textarea
                   rows={4}
                   placeholder="Describe la ternura del producto, detalles del tejido, personaje o uso..."
-                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700 resize-none"
+                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700 resize-none"
                 />
               </div>
 
@@ -97,7 +97,7 @@ export default function AdminNewProductPage() {
                 <input
                   type="text"
                   placeholder="Ej: Hilo de algodón 100% hipoalergénico, ojos de seguridad, relleno vellón siliconado."
-                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700"
+                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700"
                 />
               </div>
             </div>
@@ -109,7 +109,7 @@ export default function AdminNewProductPage() {
               Galería de Imágenes
             </h3>
             
-            <div className="border-2 border-dashed border-stone-300 hover:border-amber-700 rounded-lg p-6 text-center bg-stone-50/50 transition-colors cursor-pointer space-y-1.5">
+            <div className="border-2 border-dashed border-stone-300 hover:border-amber-700 rounded-[8px] p-6 text-center bg-stone-50/50 transition-colors cursor-pointer space-y-1.5">
               <MdCloudUpload className="text-3xl text-stone-400 mx-auto" />
               <p className="font-semibold text-xs text-stone-700">
                 Haz clic o arrastra fotos del amigurumi aquí
@@ -137,7 +137,7 @@ export default function AdminNewProductPage() {
                   type="number"
                   step="0.01"
                   placeholder="25.00"
-                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs text-stone-800 font-bold focus:outline-none focus:border-amber-700"
+                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 font-bold focus:outline-none focus:border-amber-700"
                 />
               </div>
 
@@ -149,7 +149,7 @@ export default function AdminNewProductPage() {
                   type="number"
                   step="0.01"
                   placeholder="19.99"
-                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs text-rose-700 font-bold focus:outline-none focus:border-amber-700"
+                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-rose-700 font-bold focus:outline-none focus:border-amber-700"
                 />
               </div>
 
@@ -160,7 +160,7 @@ export default function AdminNewProductPage() {
                 <input
                   type="number"
                   defaultValue={10}
-                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs text-stone-800 font-bold focus:outline-none focus:border-amber-700"
+                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 font-bold focus:outline-none focus:border-amber-700"
                 />
               </div>
             </div>
@@ -172,7 +172,7 @@ export default function AdminNewProductPage() {
             </h3>
 
             <div className="space-y-2.5">
-              <label className="flex items-center justify-between p-3 rounded-lg bg-stone-50 border border-stone-100 cursor-pointer">
+              <label className="flex items-center justify-between p-3 rounded-[8px] bg-stone-50 border border-stone-100 cursor-pointer">
                 <div>
                   <span className="text-xs font-semibold text-stone-800 block">Producto Activo</span>
                   <span className="text-[11px] text-stone-500">Visible en la tienda</span>
@@ -180,7 +180,7 @@ export default function AdminNewProductPage() {
                 <input type="checkbox" defaultChecked className="w-4 h-4 accent-[#72594e] rounded" />
               </label>
 
-              <label className="flex items-center justify-between p-3 rounded-lg bg-stone-50 border border-stone-100 cursor-pointer">
+              <label className="flex items-center justify-between p-3 rounded-[8px] bg-stone-50 border border-stone-100 cursor-pointer">
                 <div>
                   <span className="text-xs font-semibold text-stone-800 block">Destacar en Inicio</span>
                   <span className="text-[11px] text-stone-500">En sección "Más Vendidos"</span>

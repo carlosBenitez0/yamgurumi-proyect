@@ -59,7 +59,7 @@ export default function AdminHeader() {
           <input
             type="text"
             placeholder="Buscar en el sistema..."
-            className="w-full pl-9 pr-3 py-1.5 bg-white border border-stone-200 rounded-lg text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700 focus:ring-1 focus:ring-amber-700/20 transition-all shadow-2xs"
+            className="w-full pl-9 pr-3 py-1.5 bg-white border border-stone-200 rounded-[6px] text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700 focus:ring-1 focus:ring-amber-700/20 transition-all shadow-2xs"
           />
         </div>
 

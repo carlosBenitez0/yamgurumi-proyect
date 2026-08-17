@@ -34,18 +34,18 @@ export default function AdminProductsPage() {
             <input
               type="text"
               placeholder="Buscar producto por nombre, categoría o tag..."
-              className="w-full pl-9 pr-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700"
+              className="w-full pl-9 pr-3 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700"
             />
           </div>
           <div className="flex items-center gap-2">
-            <select className="px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs text-stone-700 focus:outline-none">
+            <select className="px-3 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-700 focus:outline-none">
               <option value="">Todas las Categorías</option>
               <option value="munecos">Muñecos</option>
               <option value="llaveros">Llaveros</option>
               <option value="decoracion">Decoración</option>
               <option value="accesorios">Accesorios</option>
             </select>
-            <select className="px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs text-stone-700 focus:outline-none">
+            <select className="px-3 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-700 focus:outline-none">
               <option value="">Todos los Estados</option>
               <option value="active">Activo</option>
               <option value="draft">Borrador</option>
