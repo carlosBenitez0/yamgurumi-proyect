@@ -109,7 +109,7 @@ export default function AdminNewProductPage() {
               Galería de Imágenes
             </h3>
             
-            <div className="border-2 border-dashed border-stone-300 hover:border-amber-700 rounded-2xl p-6 text-center bg-stone-50/50 transition-colors cursor-pointer space-y-1.5">
+            <div className="border-2 border-dashed border-stone-300 hover:border-amber-700 rounded-lg p-6 text-center bg-stone-50/50 transition-colors cursor-pointer space-y-1.5">
               <MdCloudUpload className="text-3xl text-stone-400 mx-auto" />
               <p className="font-semibold text-xs text-stone-700">
                 Haz clic o arrastra fotos del amigurumi aquí
@@ -172,7 +172,7 @@ export default function AdminNewProductPage() {
             </h3>
 
             <div className="space-y-2.5">
-              <label className="flex items-center justify-between p-3 rounded-xl bg-stone-50 border border-stone-100 cursor-pointer">
+              <label className="flex items-center justify-between p-3 rounded-lg bg-stone-50 border border-stone-100 cursor-pointer">
                 <div>
                   <span className="text-xs font-semibold text-stone-800 block">Producto Activo</span>
                   <span className="text-[11px] text-stone-500">Visible en la tienda</span>
@@ -180,7 +180,7 @@ export default function AdminNewProductPage() {
                 <input type="checkbox" defaultChecked className="w-4 h-4 accent-[#72594e] rounded" />
               </label>
 
-              <label className="flex items-center justify-between p-3 rounded-xl bg-stone-50 border border-stone-100 cursor-pointer">
+              <label className="flex items-center justify-between p-3 rounded-lg bg-stone-50 border border-stone-100 cursor-pointer">
                 <div>
                   <span className="text-xs font-semibold text-stone-800 block">Destacar en Inicio</span>
                   <span className="text-[11px] text-stone-500">En sección "Más Vendidos"</span>
