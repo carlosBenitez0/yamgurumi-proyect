@@ -66,6 +66,7 @@ export default function AdminNewProductClient({
 
   const [newPresetInput, setNewPresetInput] = useState('');
   const [showAddPresetForm, setShowAddPresetForm] = useState(false);
+  const [materialToDelete, setMaterialToDelete] = useState<string | null>(null);
 
   const handleAddPreset = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -89,13 +90,13 @@ export default function AdminNewProductClient({
     toggleMaterial(trimmed);
   };
 
-  const handleRemovePreset = (materialToRemove: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const confirmRemovePreset = (materialToRemove: string) => {
     const updated = presetMaterials.filter((m) => m !== materialToRemove);
     setPresetMaterials(updated);
     if (typeof window !== 'undefined') {
       localStorage.setItem('yamgurumi_preset_materials', JSON.stringify(updated));
     }
+    setMaterialToDelete(null);
   };
 
   const [formData, setFormData] = useState({
@@ -411,10 +412,37 @@ export default function AdminNewProductClient({
                   </div>
                 )}
 
-                {/* CHIPS SELECCIONABLES Y ELIMINABLES */}
+                {/* CHIPS SELECCIONABLES Y ELIMINABLES CON CONFIRMACIÓN */}
                 <div className="flex flex-wrap gap-1.5 p-3 bg-stone-50 border border-stone-200/80 rounded-[8px]">
                   {presetMaterials.map((mat) => {
                     const selected = isMaterialSelected(mat);
+                    const isConfirming = materialToDelete === mat;
+
+                    if (isConfirming) {
+                      return (
+                        <div
+                          key={mat}
+                          className="inline-flex items-center gap-2 px-3 py-1 bg-rose-50 border border-rose-300 text-rose-900 rounded-[6px] text-[11px] font-semibold animate-in fade-in duration-150"
+                        >
+                          <span>¿Eliminar "{mat}"?</span>
+                          <button
+                            type="button"
+                            onClick={() => confirmRemovePreset(mat)}
+                            className="px-2 py-0.5 bg-rose-600 hover:bg-rose-700 text-white rounded-[4px] text-[10px] font-bold transition-colors"
+                          >
+                            Sí, eliminar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setMaterialToDelete(null)}
+                            className="px-2 py-0.5 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-[4px] text-[10px] font-bold transition-colors"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      );
+                    }
+
                     return (
                       <div
                         key={mat}
@@ -429,7 +457,10 @@ export default function AdminNewProductClient({
                         <span>{mat}</span>
                         <button
                           type="button"
-                          onClick={(e) => handleRemovePreset(mat, e)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMaterialToDelete(mat);
+                          }}
                           className={`ml-0.5 p-0.5 rounded-full hover:bg-stone-200/80 transition-colors ${
                             selected ? 'hover:bg-[#594339] text-amber-200' : 'text-stone-400 hover:text-rose-600'
                           }`}

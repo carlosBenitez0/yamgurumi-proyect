@@ -238,22 +238,26 @@ export default function AdminProductsClient({
                       <button
                         onClick={() => handleToggleActive(product.id, product.isActive)}
                         disabled={isPending}
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-[4px] border transition-colors ${
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-[4px] border transition-all ${
                           product.isActive
                             ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                            : 'bg-stone-100 text-stone-500 border-stone-200 hover:bg-stone-200'
+                            : 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100 shadow-2xs'
                         }`}
-                        title="Haz clic para cambiar visibilidad en la tienda"
+                        title={
+                          product.isActive
+                            ? 'Producto visible en la tienda. Haz clic para Ocultarlo.'
+                            : 'Producto actualmente Oculto. Haz clic para VOLVER A ACTIVARLO en la tienda pública.'
+                        }
                       >
                         {product.isActive ? (
                           <>
-                            <MdVisibility className="text-xs text-emerald-600" />
+                            <MdVisibility className="text-xs text-emerald-600 shrink-0" />
                             <span>Activo</span>
                           </>
                         ) : (
                           <>
-                            <MdVisibilityOff className="text-xs text-stone-400" />
-                            <span>Oculto</span>
+                            <MdVisibilityOff className="text-xs text-amber-600 shrink-0" />
+                            <span>Oculto (Haz clic para Reactivar)</span>
                           </>
                         )}
                       </button>
