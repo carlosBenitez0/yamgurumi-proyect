@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverActions: {
+    bodySizeLimit: '10mb',
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
   images: {
     remotePatterns: [
       {
@@ -14,11 +22,6 @@ const nextConfig: NextConfig = {
     ],
   },
   serverExternalPackages: ['@prisma/client', 'bcryptjs', 'pg'],
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
-  },
 };
 
 export default nextConfig;

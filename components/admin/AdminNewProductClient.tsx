@@ -183,8 +183,8 @@ export default function AdminNewProductClient({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 12 * 1024 * 1024) {
-      setErrorMsg('La imagen seleccionada supera el límite máximo permitido de 12MB.');
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMsg('La foto seleccionada supera el límite de 5MB. Por favor elige una imagen de hasta 5MB.');
       return;
     }
 
@@ -606,7 +606,7 @@ export default function AdminNewProductClient({
                       {isCompressing ? 'Optimizando imagen...' : 'Haz clic para seleccionar una foto desde tu computadora'}
                     </p>
                     <p className="text-[11px] text-stone-400 mt-0.5">
-                      Soporta fotos PNG, JPG o WEBP (Optimizadas automáticamente)
+                      Soporta fotos PNG, JPG o WEBP (Hasta 5MB por foto, optimizadas automáticamente)
                     </p>
                   </div>
                   {localImageName && (
