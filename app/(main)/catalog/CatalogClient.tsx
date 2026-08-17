@@ -138,7 +138,13 @@ const categoryIcon: Record<string, string> = {
   "Anime & Fanart": "⚡",
 };
 
-export default function CatalogClient() {
+export default function CatalogClient({
+  initialProducts,
+}: {
+  initialProducts?: Product[];
+}) {
+  const baseProducts = initialProducts && initialProducts.length > 0 ? initialProducts : allProducts;
+
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -220,17 +226,22 @@ export default function CatalogClient() {
   }, []);
 
   const filteredProducts = useMemo(() => {
-    let result = [...allProducts];
+    let result = [...baseProducts];
 
     if (activeCategory) {
       result = result.filter((p) => p.category === activeCategory);
     }
 
     if (searchQuery.trim()) {
-      result = searchProducts(searchQuery.trim());
-      if (activeCategory) {
-        result = result.filter((p) => p.category === activeCategory);
-      }
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q) ||
+          p.description.toLowerCase().includes(q) ||
+          p.materials.toLowerCase().includes(q) ||
+          (p.searchKeywords && p.searchKeywords.some((k) => k.toLowerCase().includes(q)))
+      );
     }
 
     const min = priceMin ? Number(priceMin) : 0;
@@ -240,18 +251,18 @@ export default function CatalogClient() {
     }
 
     if (activeSizes.length > 0) {
-      result = result.filter((p) => activeSizes.includes(sizeSlugByLabel[p.size]));
+      result = result.filter((p) => activeSizes.includes(sizeSlugByLabel[p.size] || p.size.toLowerCase()));
     }
 
     if (activeTags.length > 0) {
-      const labels = activeTags.map((t) => tagLabelBySlug[t]);
+      const labels = activeTags.map((t) => tagLabelBySlug[t] || t);
       result = result.filter((p) => labels.some((l) => p.tags.includes(l)));
     }
 
     result = sortProducts(result, sortOption);
 
     return result;
-  }, [activeCategory, searchQuery, sortOption, priceMin, priceMax, activeSizes, activeTags]);
+  }, [baseProducts, activeCategory, searchQuery, sortOption, priceMin, priceMax, activeSizes, activeTags]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
   const safePage = Math.min(currentPage, totalPages);

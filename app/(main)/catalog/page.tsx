@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import CatalogClient from "./CatalogClient";
+import { getPublicProducts } from "@/src/lib/publicProducts";
 import { YarnBall } from "@/components/ui/CraftBackground";
 
 export const metadata: Metadata = {
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   },
 };
 
-/* ── Loading fallback ───────────────────────────────────── */
+export const revalidate = 0; // Garantiza que los nuevos productos agregados por el admin aparezcan al instante
 
 function CatalogFallback() {
   return (
@@ -31,12 +32,12 @@ function CatalogFallback() {
   );
 }
 
-/* ── Page ───────────────────────────────────────────────── */
+export default async function CatalogPage() {
+  const products = await getPublicProducts();
 
-export default function CatalogPage() {
   return (
     <Suspense fallback={<CatalogFallback />}>
-      <CatalogClient />
+      <CatalogClient initialProducts={products} />
     </Suspense>
   );
 }
