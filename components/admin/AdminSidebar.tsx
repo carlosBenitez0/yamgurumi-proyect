@@ -23,7 +23,8 @@ import {
   MdMenu,
   MdClose,
 } from 'react-icons/md';
-import { logoutAction } from '@/src/actions/auth/logout';
+const LOGO_URL =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuAl3N2_Uphmn6Pqvfi0INnwVm8HPvyyhKhctRW_by89CkhN12bA06eRaB7oMKrv2ko0gBArMGLIxdWpktm7IfNu-J455T49N2f7sD8E1n4uTwHDDDPtRpTzo3DZzgKniYE_Fyep3trvq0hHqiUP3O82F--HFSPVl4fdrA5andRyGTlF_ChobNdCUDB15Pa0SO4ahCjSzOTb0eUhg3Eea80XC972DXDKaedGQdRNZRGL8l1OftmN8dQSVdiDRwF8I0kpwFdMHHM4SUw";
 
 interface NavItem {
   label: string;
@@ -120,9 +121,11 @@ export default function AdminSidebar() {
               href="/admin"
               className="flex items-center gap-3 overflow-hidden group"
             >
-              <div className="w-9 h-9 rounded-xl bg-[#3d332e] border border-[#52453e] flex items-center justify-center text-stone-100 font-bold text-lg shadow-xs group-hover:scale-105 transition-transform shrink-0">
-                🧶
-              </div>
+              <img
+                src={LOGO_URL}
+                alt="Logo Oficial Yamgurumi"
+                className="w-9 h-9 rounded-full object-cover border border-stone-600/60 shadow-xs group-hover:scale-105 transition-transform shrink-0"
+              />
               {!collapsed && (
                 <div className="flex flex-col">
                   <span className="font-headline font-bold text-base text-stone-100 tracking-wide leading-none">
