@@ -918,7 +918,7 @@ export default function CatalogClient({
               {displayedProducts.length > 0 ? (
                 <>
                   <h2 className="sr-only">Productos del catálogo</h2>
-                  <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-[repeat(auto-fit,minmax(260px,1fr))] lg:justify-center">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 items-start justify-items-center sm:justify-items-start">
                     {displayedProducts.map((product, i) => (
                       <ScrollReveal key={product.id} delay={Math.min((i % 6) + 1, 6)}>
                         <ProductCard

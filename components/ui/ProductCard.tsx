@@ -123,7 +123,7 @@ const ProductCard = memo(function ProductCard({
       : "";
 
   return (
-    <div className={`relative h-full group group/card ${revealClass}`}>
+    <div className={`relative h-full w-full max-w-[320px] group group/card ${revealClass}`}>
       {/* Stretched link — cubre toda la card */}
       <Link
         href={`/producto/${product.slug}`}
