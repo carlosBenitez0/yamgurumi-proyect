@@ -144,7 +144,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* BANNER DE BIENVENIDA CÁLIDO Y SOBRIO */}
-      <div className="rounded-2xl bg-white border border-stone-200/90 p-6 sm:p-7 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="rounded-[12px] bg-white border border-stone-200/90 p-6 sm:p-7 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1">
           <h2 className="font-headline font-bold text-xl sm:text-2xl text-stone-800 tracking-tight">
             Bienvenido, Carlos
@@ -157,14 +157,14 @@ export default function AdminDashboardPage() {
         <div className="flex items-center gap-3 shrink-0">
           <Link
             href="/admin/productos/nuevo"
-            className="px-3.5 py-2 bg-[#72594e] hover:bg-[#60493f] text-white font-semibold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-colors"
+            className="px-3.5 py-2 bg-[#72594e] hover:bg-[#60493f] text-white font-semibold text-xs rounded-[8px] shadow-xs flex items-center gap-1.5 transition-colors"
           >
             <MdAdd className="text-base" />
             <span>Añadir Producto</span>
           </Link>
           <Link
             href="/admin/pedidos"
-            className="px-3.5 py-2 bg-stone-100 hover:bg-stone-200/70 text-stone-700 font-semibold text-xs rounded-xl border border-stone-200 flex items-center gap-1.5 transition-colors"
+            className="px-3.5 py-2 bg-stone-100 hover:bg-stone-200/70 text-stone-700 font-semibold text-xs rounded-[8px] border border-stone-200 flex items-center gap-1.5 transition-colors"
           >
             <MdReceiptLong className="text-base text-stone-500" />
             <span>Ver Pedidos</span>
@@ -179,7 +179,7 @@ export default function AdminDashboardPage() {
           return (
             <div
               key={stat.id}
-              className="rounded-2xl bg-white border border-stone-200/90 p-5 shadow-xs flex flex-col justify-between hover:border-stone-300 transition-colors"
+              className="rounded-[12px] bg-white border border-stone-200/90 p-5 shadow-xs flex flex-col justify-between hover:border-stone-300 transition-colors"
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -190,14 +190,14 @@ export default function AdminDashboardPage() {
                     {stat.value}
                   </h3>
                 </div>
-                <div className={`p-2.5 rounded-xl ${stat.iconBg}`}>
+                <div className={`p-2.5 rounded-[8px] ${stat.iconBg}`}>
                   <Icon className="text-xl" />
                 </div>
               </div>
 
               <div className="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between text-xs">
                 <span
-                  className={`inline-flex items-center gap-0.5 px-2 py-0.5 text-[11px] font-semibold rounded-md border ${stat.badgeBg}`}
+                  className={`inline-flex items-center gap-0.5 px-2 py-0.5 text-[11px] font-semibold rounded-[4px] border ${stat.badgeBg}`}
                 >
                   {stat.change}
                 </span>
@@ -211,7 +211,7 @@ export default function AdminDashboardPage() {
       {/* SECCIÓN DE GRÁFICOS Y DISTRIBUCIÓN */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* GRÁFICO RESUMEN DE VENTAS */}
-        <div className="lg:col-span-2 rounded-2xl bg-white border border-stone-200/90 p-6 shadow-xs space-y-6">
+        <div className="lg:col-span-2 rounded-[12px] bg-white border border-stone-200/90 p-6 shadow-xs space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-headline font-bold text-base text-stone-800 flex items-center gap-2">
@@ -220,9 +220,9 @@ export default function AdminDashboardPage() {
               </h3>
               <p className="text-xs text-stone-500">Ingresos comparativos de la semana</p>
             </div>
-            <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-lg text-xs text-stone-600 font-medium">
-              <button className="px-2.5 py-1 rounded-md bg-white text-stone-800 shadow-2xs font-semibold">Semanal</button>
-              <button className="px-2.5 py-1 rounded-md hover:text-stone-900">Mensual</button>
+            <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-[6px] text-xs text-stone-600 font-medium">
+              <button className="px-2.5 py-1 rounded-[4px] bg-white text-stone-800 shadow-2xs font-semibold">Semanal</button>
+              <button className="px-2.5 py-1 rounded-[4px] hover:text-stone-900">Mensual</button>
             </div>
           </div>
 
@@ -238,12 +238,12 @@ export default function AdminDashboardPage() {
               { day: 'Dom', sales: 740, height: '70%' },
             ].map((bar, i) => (
               <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
-                <div className="w-full bg-stone-100 rounded-t-lg overflow-hidden h-full flex items-end relative">
+                <div className="w-full bg-stone-100 rounded-t-[6px] overflow-hidden h-full flex items-end relative">
                   <div
                     style={{ height: bar.height }}
-                    className="w-full bg-[#206776] hover:bg-[#1a5562] transition-all rounded-t-lg relative"
+                    className="w-full bg-[#206776] hover:bg-[#1a5562] transition-all rounded-t-[6px] relative"
                   >
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-stone-800 text-white text-[10px] rounded font-medium opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-sm">
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-stone-800 text-white text-[10px] rounded-[4px] font-medium opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-sm">
                       ${bar.sales}
                     </div>
                   </div>
@@ -266,7 +266,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* DISTRIBUCIÓN POR CATEGORÍAS */}
-        <div className="rounded-2xl bg-white border border-stone-200/90 p-6 shadow-xs space-y-5">
+        <div className="rounded-[12px] bg-white border border-stone-200/90 p-6 shadow-xs space-y-5">
           <div>
             <h3 className="font-headline font-bold text-base text-stone-800">Ventas por Categoría</h3>
             <p className="text-xs text-stone-500">Proporción de demanda en el catálogo</p>
@@ -310,7 +310,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* TABLA DE PEDIDOS RECIENTES */}
-      <div className="rounded-2xl bg-white border border-stone-200/90 p-6 shadow-xs space-y-4">
+      <div className="rounded-[12px] bg-white border border-stone-200/90 p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="font-headline font-bold text-base text-stone-800 flex items-center gap-2">
@@ -321,7 +321,7 @@ export default function AdminDashboardPage() {
           </div>
           <Link
             href="/admin/pedidos"
-            className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200/60 text-stone-700 font-medium text-xs rounded-xl border border-stone-200 inline-flex items-center gap-1 self-start sm:self-auto transition-colors"
+            className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200/60 text-stone-700 font-medium text-xs rounded-[8px] border border-stone-200 inline-flex items-center gap-1 self-start sm:self-auto transition-colors"
           >
             <span>Ver Todos</span>
             <MdChevronRight />
@@ -333,12 +333,12 @@ export default function AdminDashboardPage() {
           <table className="w-full text-left text-xs text-stone-700">
             <thead className="bg-stone-50 text-stone-500 uppercase tracking-wider font-semibold text-[10px]">
               <tr>
-                <th className="px-3.5 py-2.5 rounded-l-lg">ID Pedido</th>
+                <th className="px-3.5 py-2.5 rounded-l-[6px]">ID Pedido</th>
                 <th className="px-3.5 py-2.5">Cliente</th>
                 <th className="px-3.5 py-2.5">Productos</th>
                 <th className="px-3.5 py-2.5">Total</th>
                 <th className="px-3.5 py-2.5">Estado</th>
-                <th className="px-3.5 py-2.5 text-right rounded-r-lg">Acción</th>
+                <th className="px-3.5 py-2.5 text-right rounded-r-[6px]">Acción</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -353,7 +353,7 @@ export default function AdminDashboardPage() {
                   <td className="px-3.5 py-3 font-bold text-stone-800">{order.total}</td>
                   <td className="px-3.5 py-3">
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium rounded-md border ${order.statusBadge}`}
+                      className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium rounded-[4px] border ${order.statusBadge}`}
                     >
                       {order.statusLabel}
                     </span>
@@ -361,7 +361,7 @@ export default function AdminDashboardPage() {
                   <td className="px-3.5 py-3 text-right">
                     <Link
                       href="/admin/pedidos"
-                      className="px-2.5 py-1 bg-stone-100 hover:bg-stone-200/80 text-stone-700 font-medium rounded-md text-xs transition-colors inline-block"
+                      className="px-2.5 py-1 bg-stone-100 hover:bg-stone-200/80 text-stone-700 font-medium rounded-[6px] text-xs transition-colors inline-block"
                     >
                       Procesar
                     </Link>
@@ -376,13 +376,13 @@ export default function AdminDashboardPage() {
       {/* DOS COLUMNAS INFERIORES: STOCK BAJO + ENCARGOS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* STOCK BAJO */}
-        <div className="rounded-2xl bg-white border border-stone-200/90 p-6 shadow-xs space-y-4">
+        <div className="rounded-[12px] bg-white border border-stone-200/90 p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-stone-100 pb-3">
             <h3 className="font-headline font-bold text-base text-stone-800 flex items-center gap-2">
               <MdWarning className="text-amber-600 text-lg" />
               <span>Alerta de Inventario</span>
             </h3>
-            <span className="px-2 py-0.5 text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200 rounded-md">
+            <span className="px-2 py-0.5 text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200 rounded-[4px]">
               3 Ítems
             </span>
           </div>
@@ -391,14 +391,14 @@ export default function AdminDashboardPage() {
             {lowStockItems.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between p-3 rounded-xl bg-stone-50 border border-stone-100"
+                className="flex items-center justify-between p-3 rounded-[8px] bg-stone-50 border border-stone-100"
               >
                 <div>
                   <h4 className="font-semibold text-xs text-stone-800">{item.name}</h4>
                   <p className="text-[11px] text-stone-500">Categoría: {item.category}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200">
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[4px] bg-rose-50 text-rose-800 border border-rose-200">
                     {item.stock} disps.
                   </span>
                   <Link
@@ -415,7 +415,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* ENCARGOS A MEDIDA */}
-        <div className="rounded-2xl bg-white border border-stone-200/90 p-6 shadow-xs space-y-4">
+        <div className="rounded-[12px] bg-white border border-stone-200/90 p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-stone-100 pb-3">
             <h3 className="font-headline font-bold text-base text-stone-800 flex items-center gap-2">
               <MdAutoAwesome className="text-[#72594e] text-lg" />
@@ -433,7 +433,7 @@ export default function AdminDashboardPage() {
             {customRequests.map((req) => (
               <div
                 key={req.id}
-                className="p-3 rounded-xl bg-stone-50 border border-stone-100 space-y-1.5"
+                className="p-3 rounded-[8px] bg-stone-50 border border-stone-100 space-y-1.5"
               >
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-stone-800">{req.customer}</span>
@@ -441,7 +441,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <p className="text-xs text-stone-600 font-medium">{req.request}</p>
                 <div className="pt-1 flex items-center justify-between text-xs">
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-stone-200/60 text-stone-700">
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-[4px] bg-stone-200/60 text-stone-700">
                     {req.status}
                   </span>
                   <Link
