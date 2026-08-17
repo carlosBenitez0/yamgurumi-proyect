@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useTransition, useRef } from 'react';
+import React, { useState, useEffect, useTransition, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -131,17 +131,19 @@ export default function AdminNewProductClient({
   const [customSize, setCustomSize] = useState('');
 
   // Estados de Materiales Predeterminados
-  const [presetMaterials, setPresetMaterials] = useState<string[]>(() => {
+  const [presetMaterials, setPresetMaterials] = useState<string[]>(DEFAULT_MATERIALS);
+
+  // Cargar lista personalizada de localStorage solo tras el montaje en el cliente para evitar hidratación fallida (Hydration Mismatch)
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('yamgurumi_preset_materials');
       if (stored) {
         try {
-          return JSON.parse(stored);
+          setPresetMaterials(JSON.parse(stored));
         } catch (e) {}
       }
     }
-    return DEFAULT_MATERIALS;
-  });
+  }, []);
 
   const [newPresetInput, setNewPresetInput] = useState('');
   const [showAddPresetForm, setShowAddPresetForm] = useState(false);
