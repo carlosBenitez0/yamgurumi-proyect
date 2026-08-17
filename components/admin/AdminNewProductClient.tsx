@@ -1,9 +1,18 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MdArrowBack, MdSave, MdCloudUpload, MdShoppingBag } from 'react-icons/md';
+import {
+  MdArrowBack,
+  MdSave,
+  MdCloudUpload,
+  MdShoppingBag,
+  MdLink,
+  MdPhotoLibrary,
+  MdCheck,
+  MdClose,
+} from 'react-icons/md';
 import { createProductAction } from '@/src/actions/admin/products';
 
 interface CategoryOption {
@@ -12,14 +21,35 @@ interface CategoryOption {
   icon?: string | null;
 }
 
+const COMMON_MATERIALS = [
+  'Hilo de algodón 100% hipoalergénico',
+  'Ojos de seguridad de plástico',
+  'Relleno de vellón siliconado',
+  'Lana acrílica suave',
+  'Detalles bordados a mano',
+  'Argolla metálica para llavero',
+  'Fieltro y aplicaciones',
+  'Sonajero o cascabel interno',
+  'Lana chenille / peluche',
+];
+
 export default function AdminNewProductClient({
   categories,
 }: {
   categories: CategoryOption[];
 }) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Estados de Imagen
+  const [imageTab, setImageTab] = useState<'local' | 'url'>('local');
+  const [localImageName, setLocalImageName] = useState('');
+
+  // Estados de Tamaño
+  const [sizeSelect, setSizeSelect] = useState('Mediano');
+  const [customSize, setCustomSize] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -27,7 +57,6 @@ export default function AdminNewProductClient({
     price: '',
     salePrice: '',
     stock: '10',
-    size: 'Mediano',
     description: '',
     materials: 'Hilo de algodón 100% hipoalergénico, ojos de seguridad, vellón siliconado',
     imageUrl: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=800&q=80',
@@ -35,20 +64,87 @@ export default function AdminNewProductClient({
     isActive: true,
   });
 
+  // Manejo de carga de archivos locales
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMsg('La imagen seleccionada supera el tamaño máximo permitido de 5MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        setFormData((prev) => ({ ...prev, imageUrl: dataUrl }));
+        setLocalImageName(file.name);
+        setErrorMsg('');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Alternar chips de materiales comunes
+  const toggleMaterial = (material: string) => {
+    const currentList = formData.materials
+      .split(',')
+      .map((m) => m.trim())
+      .filter(Boolean);
+
+    let updated: string[];
+    if (currentList.includes(material)) {
+      updated = currentList.filter((m) => m !== material);
+    } else {
+      updated = [...currentList, material];
+    }
+    setFormData({ ...formData, materials: updated.join(', ') });
+  };
+
+  const isMaterialSelected = (material: string) => {
+    const currentList = formData.materials
+      .split(',')
+      .map((m) => m.trim().toLowerCase());
+    return currentList.includes(material.toLowerCase());
+  };
+
+  // Envío y validación del formulario
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
+    // Validaciones
     if (!formData.name.trim()) {
       setErrorMsg('Por favor ingresa un nombre para el producto.');
       return;
     }
+
     if (!formData.categoryId) {
       setErrorMsg('Por favor selecciona una categoría.');
       return;
     }
+
+    // Validación de Tamaño Personalizado
+    const finalSize = sizeSelect === 'Personalizado' ? customSize.trim() : sizeSelect;
+
+    if (sizeSelect === 'Personalizado' && !customSize.trim()) {
+      setErrorMsg('Por favor especifica el tamaño personalizado a mano en el campo correspondiente.');
+      return;
+    }
+
+    if (!finalSize) {
+      setErrorMsg('Por favor selecciona o especifica un tamaño válido para el producto.');
+      return;
+    }
+
     if (!formData.price || Number(formData.price) <= 0) {
-      setErrorMsg('Por favor ingresa un precio válido.');
+      setErrorMsg('Por favor ingresa un precio válido mayor a 0.');
+      return;
+    }
+
+    if (!formData.imageUrl) {
+      setErrorMsg('Por favor sube una foto desde tu equipo o proporciona una URL de imagen.');
       return;
     }
 
@@ -60,9 +156,9 @@ export default function AdminNewProductClient({
           price: Number(formData.price),
           salePrice: formData.salePrice ? Number(formData.salePrice) : null,
           stock: Number(formData.stock),
-          size: formData.size,
-          description: formData.description || 'Amigurumi tejido a mano con acabados artesanales.',
-          materials: formData.materials,
+          size: finalSize,
+          description: formData.description || 'Amigurumi tejido a mano en crochet.',
+          materials: formData.materials || 'Hilo de algodón 100% hipoalergénico',
           imageUrls: [formData.imageUrl],
           isFeatured: formData.isFeatured,
           isActive: formData.isActive,
@@ -111,8 +207,15 @@ export default function AdminNewProductClient({
       </div>
 
       {errorMsg && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-[8px] text-rose-800 text-xs font-medium">
-          ⚠️ {errorMsg}
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-[8px] text-rose-800 text-xs font-semibold flex items-center justify-between">
+          <span>⚠️ {errorMsg}</span>
+          <button
+            type="button"
+            onClick={() => setErrorMsg('')}
+            className="text-rose-600 hover:text-rose-800"
+          >
+            <MdClose className="text-base" />
+          </button>
         </div>
       )}
 
@@ -161,21 +264,43 @@ export default function AdminNewProductClient({
                   </select>
                 </div>
 
+                {/* SELECCIÓN Y VALIDACIÓN DE TAMAÑO CON OPCIÓN DE ESCRIBIR A MANO */}
                 <div>
                   <label className="block text-xs font-semibold text-stone-700 mb-1">
-                    Tamaño del Amigurumi
+                    Tamaño del Amigurumi *
                   </label>
                   <select
-                    value={formData.size}
-                    onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                    value={sizeSelect}
+                    onChange={(e) => setSizeSelect(e.target.value)}
                     className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 focus:outline-none focus:border-amber-700"
                   >
                     <option value="Mini">Mini (5 - 10 cm)</option>
                     <option value="Mediano">Mediano (15 - 22 cm)</option>
                     <option value="Grande">Grande (25 - 40 cm)</option>
+                    <option value="Personalizado">✏️ Escribir a mano / Tamaño Personalizado</option>
                   </select>
                 </div>
               </div>
+
+              {/* CAMPO ADICIONAL CUANDO SE SELECCIONA TAMANO A MANO */}
+              {sizeSelect === 'Personalizado' && (
+                <div className="p-3.5 bg-amber-50/60 border border-amber-200/80 rounded-[8px] space-y-1.5 animate-in slide-in-from-top-1 duration-150">
+                  <label className="block text-xs font-bold text-amber-900">
+                    Especifica el tamaño a mano *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={customSize}
+                    onChange={(e) => setCustomSize(e.target.value)}
+                    placeholder="Ej: Gigante (60 cm), Micro Llavero (3 cm), XL (50x30 cm)..."
+                    className="w-full px-3.5 py-2 bg-white border border-amber-300 rounded-[6px] text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700 font-medium"
+                  />
+                  <p className="text-[11px] text-amber-700">
+                    Este tamaño se guardará y mostrará directamente en la ficha del producto.
+                  </p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-semibold text-stone-700 mb-1">
@@ -190,44 +315,170 @@ export default function AdminNewProductClient({
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">
-                  Materiales Utilizados
-                </label>
-                <input
-                  type="text"
+              {/* LISTADO DE MATERIALES COMUNES (SELECCIÓN RÁPIDA CON CHIPS) */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold text-stone-700">
+                    Materiales Utilizados
+                  </label>
+                  <span className="text-[11px] text-stone-400">
+                    Haz clic en los materiales comunes para añadirlos automáticamente
+                  </span>
+                </div>
+
+                {/* CHIPS SELECCIONABLES */}
+                <div className="flex flex-wrap gap-1.5 p-3 bg-stone-50 border border-stone-200/80 rounded-[8px]">
+                  {COMMON_MATERIALS.map((mat) => {
+                    const selected = isMaterialSelected(mat);
+                    return (
+                      <button
+                        type="button"
+                        key={mat}
+                        onClick={() => toggleMaterial(mat)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-[11px] font-medium transition-all ${
+                          selected
+                            ? 'bg-[#72594e] text-white shadow-2xs'
+                            : 'bg-white text-stone-700 border border-stone-200 hover:border-amber-700 hover:text-amber-900'
+                        }`}
+                      >
+                        {selected && <MdCheck className="text-xs text-amber-200" />}
+                        <span>{mat}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <textarea
+                  rows={2}
                   value={formData.materials}
                   onChange={(e) => setFormData({ ...formData, materials: e.target.value })}
-                  placeholder="Ej: Hilo de algodón 100% hipoalergénico, ojos de seguridad, relleno vellón siliconado."
-                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700"
+                  placeholder="Escribe o edita la lista completa de materiales..."
+                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700 resize-none font-mono text-[11px]"
                 />
               </div>
             </div>
           </div>
 
-          {/* GALERÍA DE IMÁGENES */}
+          {/* GALERÍA / IMAGEN DEL PRODUCTO (CARGA LOCAL Y URL) */}
           <div className="bg-white border border-stone-200/90 rounded-[12px] p-6 shadow-xs space-y-4">
-            <h3 className="font-headline font-bold text-sm text-stone-800 border-b border-stone-100 pb-3">
-              Imagen del Producto (URL)
-            </h3>
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+              <h3 className="font-headline font-bold text-sm text-stone-800">
+                Fotografía del Producto *
+              </h3>
 
-            <div>
-              <input
-                type="url"
-                value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                placeholder="URL de la imagen (HTTPS)..."
-                className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700"
-              />
+              {/* TABS LOCAL / URL */}
+              <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-[6px]">
+                <button
+                  type="button"
+                  onClick={() => setImageTab('local')}
+                  className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-[4px] transition-colors ${
+                    imageTab === 'local'
+                      ? 'bg-white text-stone-800 shadow-2xs'
+                      : 'text-stone-500 hover:text-stone-800'
+                  }`}
+                >
+                  <MdPhotoLibrary className="text-sm" />
+                  <span>Cargar desde Equipo</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setImageTab('url')}
+                  className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-[4px] transition-colors ${
+                    imageTab === 'url'
+                      ? 'bg-white text-stone-800 shadow-2xs'
+                      : 'text-stone-500 hover:text-stone-800'
+                  }`}
+                >
+                  <MdLink className="text-sm" />
+                  <span>Enlace URL</span>
+                </button>
+              </div>
             </div>
 
-            {formData.imageUrl && (
-              <div className="w-24 h-24 rounded-[8px] overflow-hidden border border-stone-200 bg-stone-50">
-                <img
-                  src={formData.imageUrl}
-                  alt="Vista previa"
-                  className="w-full h-full object-cover"
+            {/* OPCIÓN 1: SELECCIONAR IMAGEN DESDE EQUIPO LOCAL */}
+            {imageTab === 'local' && (
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/png, image/jpeg, image/webp, image/gif"
+                  onChange={handleFileChange}
+                  className="hidden"
                 />
+
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-stone-300 hover:border-amber-700 rounded-[8px] p-6 text-center bg-stone-50/50 hover:bg-stone-50 transition-colors cursor-pointer space-y-2 group"
+                >
+                  <div className="w-12 h-12 rounded-[8px] bg-amber-100/70 text-[#72594e] flex items-center justify-center mx-auto text-2xl group-hover:scale-105 transition-transform">
+                    <MdCloudUpload />
+                  </div>
+                  <div>
+                    <p className="font-bold text-xs text-stone-800">
+                      Haz clic para seleccionar una foto desde tu computadora
+                    </p>
+                    <p className="text-[11px] text-stone-400 mt-0.5">
+                      Soporta archivos PNG, JPG, WEBP o GIF (Máx. 5MB)
+                    </p>
+                  </div>
+                  {localImageName && (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-900 rounded-[6px] text-xs font-semibold mt-2">
+                      <MdCheck className="text-emerald-600 text-base" />
+                      <span>{localImageName}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* OPCIÓN 2: INGRESAR URL DE IMAGEN EXTERNA */}
+            {imageTab === 'url' && (
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-stone-700">
+                  Enlace directo de la imagen (HTTPS)
+                </label>
+                <input
+                  type="url"
+                  value={formData.imageUrl.startsWith('data:') ? '' : formData.imageUrl}
+                  onChange={(e) => {
+                    setFormData({ ...formData, imageUrl: e.target.value });
+                    setLocalImageName('');
+                  }}
+                  placeholder="https://ejemplo.com/fotos/amigurumi-oso.jpg"
+                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700 font-mono"
+                />
+              </div>
+            )}
+
+            {/* VISTA PREVIA DE LA IMAGEN CARGADA */}
+            {formData.imageUrl && (
+              <div className="pt-2 flex items-center gap-4">
+                <div className="w-20 h-20 rounded-[8px] overflow-hidden border border-stone-200 bg-stone-100 shrink-0 relative shadow-2xs">
+                  <img
+                    src={formData.imageUrl}
+                    alt="Vista previa"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-xs font-semibold text-stone-800 block">Vista previa de la foto</span>
+                  <span className="text-[11px] text-stone-500 block">
+                    {formData.imageUrl.startsWith('data:')
+                      ? '📷 Imagen subida desde el disco local'
+                      : '🌐 Imagen vinculada por URL'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({ ...formData, imageUrl: '' });
+                      setLocalImageName('');
+                    }}
+                    className="text-[11px] font-semibold text-rose-600 hover:underline"
+                  >
+                    Quitar foto
+                  </button>
+                </div>
               </div>
             )}
           </div>
