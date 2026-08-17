@@ -48,7 +48,7 @@ export async function loginAction(prevState: any, formData: FormData) {
     
     await setAuthCookie(token);
 
-    return { success: true, message: 'Inicio de sesión exitoso' };
+    return { success: true, message: 'Inicio de sesión exitoso', role: user.role };
   } catch (error) {
     console.error('Login error:', error);
     return { success: false, error: 'Ocurrió un error al iniciar sesión' };

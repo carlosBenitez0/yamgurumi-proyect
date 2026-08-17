@@ -13,12 +13,12 @@ export async function middleware(request: NextRequest) {
   const isAdminRoute = url.pathname.startsWith('/admin');
   const isAuthRoute = url.pathname === '/auth/login' || url.pathname === '/auth/register';
 
-  // Si el usuario ya está autenticado e intenta ir a /auth/login o /auth/register -> Redirigir al inicio /
+  // Si el usuario ya está autenticado e intenta ir a /auth/login o /auth/register
   if (isAuthRoute && token) {
     try {
       if (!secretKey) throw new Error('JWT_SECRET missing');
-      await jwtVerify(token, key);
-      url.pathname = '/';
+      const { payload } = await jwtVerify(token, key);
+      url.pathname = payload.role === 'ADMIN' ? '/admin' : '/';
       url.search = '';
       return NextResponse.redirect(url);
     } catch (e) {
