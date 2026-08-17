@@ -87,32 +87,102 @@ export default function AdminHeader() {
           </button>
 
           {notifOpen && (
-            <div className="absolute right-0 mt-2 w-80 bg-white border border-stone-200 rounded-2xl shadow-xl p-4 z-50 text-stone-800 animate-in fade-in duration-150">
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-stone-200 rounded-2xl shadow-xl p-4 z-50 text-stone-800 animate-in fade-in duration-150">
               <div className="flex items-center justify-between pb-3 border-b border-stone-100">
                 <span className="font-headline font-bold text-xs text-stone-800">
-                  Notificaciones
+                  Notificaciones del Sistema
                 </span>
                 <span className="px-2 py-0.5 text-[10px] font-semibold bg-amber-100 text-amber-800 rounded-full">
-                  3 Nuevas
+                  4 Activas
                 </span>
               </div>
-              <div className="divide-y divide-stone-100 text-xs">
-                <div className="py-2.5 hover:bg-stone-50 px-2 rounded-lg transition-colors cursor-pointer">
-                  <p className="font-semibold text-stone-800">✨ Nuevo Pedido Recibido #ORD-8492</p>
-                  <p className="text-stone-500 text-[11px] mt-0.5">Hace 12 min — Total: $42.50 por WhatsApp</p>
-                </div>
-                <div className="py-2.5 hover:bg-stone-50 px-2 rounded-lg transition-colors cursor-pointer">
-                  <p className="font-semibold text-amber-800">⚠️ Alerta de Stock Bajo</p>
-                  <p className="text-stone-500 text-[11px] mt-0.5">"Oso Amigurumi Gigante" tiene 1 unid.</p>
-                </div>
+
+              <div className="divide-y divide-stone-100 text-xs my-1">
+                {/* 1. Alerta de Stock Bajo -> Redirige a Gestión de Productos filtrado por Stock Bajo */}
+                <Link
+                  href="/admin/productos?status=out_of_stock"
+                  onClick={() => setNotifOpen(false)}
+                  className="block py-2.5 px-2.5 hover:bg-amber-50/60 rounded-[8px] transition-colors group cursor-pointer"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-bold text-amber-900 group-hover:text-amber-700 transition-colors">
+                      ⚠️ Alerta de Inventario (Poco Stock)
+                    </p>
+                    <span className="text-[10px] text-amber-700 font-semibold bg-amber-100 px-1.5 py-0.5 rounded">
+                      Ver producto
+                    </span>
+                  </div>
+                  <p className="text-stone-600 text-[11px] mt-0.5">
+                    "Oso Teddy Tejido" tiene solo 1 unidad restante. Haz clic para gestionar stock.
+                  </p>
+                </Link>
+
+                {/* 2. Nuevo Pedido -> Redirige al Pedido Específico en Gestión de Pedidos */}
+                <Link
+                  href="/admin/pedidos?search=ORD-8492"
+                  onClick={() => setNotifOpen(false)}
+                  className="block py-2.5 px-2.5 hover:bg-stone-50 rounded-[8px] transition-colors group cursor-pointer"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-bold text-stone-800 group-hover:text-[#206776] transition-colors">
+                      ✨ Nuevo Pedido Recibido #ORD-8492
+                    </p>
+                    <span className="text-[10px] text-stone-400">12 min</span>
+                  </div>
+                  <p className="text-stone-500 text-[11px] mt-0.5">
+                    Cliente: María González — Total: $42.50 via WhatsApp. Haz clic para ver detalles.
+                  </p>
+                </Link>
+
+                {/* 3. Encargo Personalizado -> Redirige a Encargos a Medida */}
+                <Link
+                  href="/admin/encargos"
+                  onClick={() => setNotifOpen(false)}
+                  className="block py-2.5 px-2.5 hover:bg-stone-50 rounded-[8px] transition-colors group cursor-pointer"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-bold text-stone-800 group-hover:text-[#206776] transition-colors">
+                      🧶 Solicitud de Encargo a Medida
+                    </p>
+                    <span className="text-[10px] text-stone-400">1 hora</span>
+                  </div>
+                  <p className="text-stone-500 text-[11px] mt-0.5">
+                    Cotización enviada para amigurumi "Dragón Mágico 35cm".
+                  </p>
+                </Link>
+
+                {/* 4. Reseña -> Redirige a Moderación de Reseñas */}
+                <Link
+                  href="/admin/resenas"
+                  onClick={() => setNotifOpen(false)}
+                  className="block py-2.5 px-2.5 hover:bg-stone-50 rounded-[8px] transition-colors group cursor-pointer"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-bold text-stone-800 group-hover:text-[#206776] transition-colors">
+                      ⭐ Nueva Reseña (5 Estrellas)
+                    </p>
+                    <span className="text-[10px] text-stone-400">3 horas</span>
+                  </div>
+                  <p className="text-stone-500 text-[11px] mt-0.5">
+                    Sofía M. publicó una reseña en "Gatito Amigurumi".
+                  </p>
+                </Link>
               </div>
-              <div className="pt-2 border-t border-stone-100 text-center">
+
+              <div className="pt-2.5 border-t border-stone-100 flex items-center justify-between text-xs">
                 <Link
                   href="/admin/pedidos"
                   onClick={() => setNotifOpen(false)}
-                  className="text-xs font-semibold text-[#206776] hover:underline"
+                  className="font-semibold text-[#206776] hover:underline"
                 >
-                  Ver todos los pedidos →
+                  Ver Pedidos →
+                </Link>
+                <Link
+                  href="/admin/productos?status=out_of_stock"
+                  onClick={() => setNotifOpen(false)}
+                  className="font-semibold text-amber-800 hover:underline"
+                >
+                  Ver Poco Stock →
                 </Link>
               </div>
             </div>

@@ -39,6 +39,8 @@ interface CategoryOption {
   icon?: string | null;
 }
 
+import { useSearchParams } from 'next/navigation';
+
 export default function AdminProductsClient({
   initialProducts,
   categories,
@@ -46,10 +48,14 @@ export default function AdminProductsClient({
   initialProducts: ProductItem[];
   categories: CategoryOption[];
 }) {
+  const searchParams = useSearchParams();
+  const urlSearch = searchParams?.get('search') || '';
+  const urlStatus = searchParams?.get('status') || searchParams?.get('selectedStatus') || '';
+
   const [products, setProducts] = useState<ProductItem[]>(initialProducts);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(urlSearch);
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState(urlStatus);
   const [isPending, startTransition] = useTransition();
 
   const filteredProducts = products.filter((p) => {
@@ -65,7 +71,7 @@ export default function AdminProductsClient({
       selectedStatus === '' ||
       (selectedStatus === 'active' && p.isActive) ||
       (selectedStatus === 'inactive' && !p.isActive) ||
-      (selectedStatus === 'out_of_stock' && p.stock === 0);
+      (selectedStatus === 'out_of_stock' && p.stock <= 3);
 
     return matchesSearch && matchesCategory && matchesStatus;
   });
