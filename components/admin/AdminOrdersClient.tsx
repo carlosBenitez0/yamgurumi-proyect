@@ -101,16 +101,25 @@ export default function AdminOrdersClient({
 }: {
   initialOrders: OrderData[];
 }) {
-  const [orders, setOrders] = useState<OrderData[]>(initialOrders);
-  const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
-  const [search, setSearch] = useState('');
-  const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
-  const [editingStatus, setEditingStatus] = useState<OrderStatus>('PENDING');
-  const [trackingInput, setTrackingInput] = useState('');
-  const [notesInput, setNotesInput] = useState('');
-  const [isPending, startTransition] = useTransition();
-  const [errorMsg, setErrorMsg] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const copyTrackingCode = (code: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    navigator.clipboard.writeText(code);
+    setCopiedId(code);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const getWhatsAppUrl = (phone: string, orderId: string, trackingCode?: string | null) => {
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    const text = trackingCode
+      ? `¡Hola! 🧶 Te saludamos de Yamgurumi. Tu pedido #${orderId} ya fue despachado. Tu número de guía de seguimiento es: ${trackingCode}. ¡Muchas gracias por tu compra!`
+      : `¡Hola! 🧶 Te saludamos de Yamgurumi. Nos comunicamos con respecto a tu pedido #${orderId}.`;
+    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+  };
 
   // Filtrado dinámico
   const filteredOrders = orders.filter((o) => {
@@ -340,21 +349,28 @@ export default function AdminOrdersClient({
                           <span>{statusConf.label}</span>
                         </span>
                         {order.trackingNumber && (
-                          <div className="text-[10px] text-purple-700 font-mono mt-1 flex items-center gap-1">
-                            <MdLocalShipping />
-                            <span>{order.trackingNumber}</span>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => copyTrackingCode(order.trackingNumber!, e)}
+                            className="text-[10px] bg-purple-50 hover:bg-purple-100 border border-purple-200/80 text-purple-900 font-mono mt-1 px-2 py-0.5 rounded-[4px] flex items-center gap-1 transition-all cursor-pointer shadow-2xs group"
+                            title="Haz clic para copiar el número de guía al portapapeles"
+                          >
+                            <MdLocalShipping className="text-xs text-purple-600 shrink-0" />
+                            <span>
+                              {copiedId === order.trackingNumber ? '✓ ¡Guía Copiada!' : order.trackingNumber}
+                            </span>
+                          </button>
                         )}
                       </td>
 
                       <td className="px-3.5 py-3 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <a
-                            href={order.whatsappUrl}
+                            href={getWhatsAppUrl(order.phone, order.id, order.trackingNumber)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-[6px] transition-colors"
-                            title="Contactar al cliente por WhatsApp"
+                            className="p-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/60 rounded-[6px] transition-colors"
+                            title="Enviar mensaje/guía al cliente por WhatsApp"
                           >
                             <FaWhatsapp className="text-base" />
                           </a>
@@ -498,13 +514,27 @@ export default function AdminOrdersClient({
                   <label className="block text-xs font-semibold text-stone-700 mb-1">
                     Número de Guía de Envío (Tracking)
                   </label>
-                  <input
-                    type="text"
-                    value={trackingInput}
-                    onChange={(e) => setTrackingInput(e.target.value)}
-                    placeholder="Ej: GUIA-CEX-98214"
-                    className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700 font-mono"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={trackingInput}
+                      onChange={(e) => setTrackingInput(e.target.value)}
+                      placeholder="Ej: GUIA-CEX-98214"
+                      className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700 font-mono"
+                    />
+                    {selectedOrder && (
+                      <a
+                        href={getWhatsAppUrl(selectedOrder.phone, selectedOrder.id, trackingInput)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[6px] font-semibold text-xs shrink-0 flex items-center gap-1 transition-colors shadow-2xs"
+                        title="Enviar mensaje con la guía por WhatsApp"
+                      >
+                        <FaWhatsapp className="text-sm" />
+                        <span className="hidden sm:inline">Notificar</span>
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
 
