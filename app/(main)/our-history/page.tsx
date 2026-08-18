@@ -16,8 +16,8 @@ export const metadata: Metadata = {
     "El recorrido por el taller de Yamgurumi: la mesa de los materiales, el patrón, la aguja en la mano y el canasto. Amigurumis tejidos a mano en El Salvador.",
 };
 
-const WHATSAPP_URL = `https://wa.me/50377311064?text=${encodeURIComponent(
-  "Hola Yamgurumi! Quiero conocer más sobre sus amigurumis.",
+const WHATSAPP_URL = `https://api.whatsapp.com/send?phone=50377311064&text=${encodeURIComponent(
+  `¡Hola Yamgurumi! ${String.fromCodePoint(0x2728)} Quisiera conocer más sobre sus amigurumis artesanales ${String.fromCodePoint(0x1F9F6)}.`,
 )}`;
 
 /* ── Estación del recorrido ──────────────────────────────

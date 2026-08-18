@@ -36,8 +36,8 @@ const pares = [
   };
 });
 
-const WHATSAPP_URL = `https://wa.me/50377311064?text=${encodeURIComponent(
-  "Hola Yamgurumi! Quiero transformar una imagen en un amigurumi. Te envío la foto por acá.",
+const WHATSAPP_URL = `https://api.whatsapp.com/send?phone=50377311064&text=${encodeURIComponent(
+  `¡Hola Yamgurumi! ${String.fromCodePoint(0x2728)} Quiero transformar una foto/dibujo en un amigurumi personalizado ${String.fromCodePoint(0x1F9F6)}. Te comparto la imagen por acá.`,
 )}`;
 
 /* ── Card de transformación reutilizable (desktop grid) ── */

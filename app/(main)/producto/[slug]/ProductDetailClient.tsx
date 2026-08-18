@@ -92,9 +92,10 @@ export default function ProductDetailClient({
       ? window.location.origin
       : "https://yamgurumi.com";
     const productUrl = `${baseUrl}/producto/${product.slug}`;
+    const yarnEmoji = String.fromCodePoint(0x1F9F6);
 
     return encodeURIComponent(
-      `¡Hola Yamgurumi Studio! 🧶\n\nEstoy interesado en adquirir el amigurumi *${product.name}* ($${product.price.toFixed(2)} USD).\n\nEnlace del producto: ${productUrl}\n\n¿Tienen disponibilidad inmediata para envío en El Salvador? ¡Gracias!`
+      `¡Hola Yamgurumi Studio! ${yarnEmoji}\n\nEstoy interesado en adquirir el amigurumi *${product.name}* ($${product.price.toFixed(2)} USD).\n\nEnlace del producto: ${productUrl}\n\n¿Tienen disponibilidad inmediata para envío en El Salvador? ¡Gracias!`
     );
   }, [product]);
 
@@ -289,7 +290,7 @@ export default function ProductDetailClient({
                 </button>
 
                 <a
-                  href={`https://wa.me/50377311064?text=${whatsappMessage}`}
+                  href={`https://api.whatsapp.com/send?phone=50377311064&text=${whatsappMessage}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 px-6 py-4 rounded-full font-body text-sm font-bold whitespace-nowrap bg-[#075e54] hover:bg-[#054f47] text-white transition-all duration-300 active:scale-95 shadow-button hover:shadow-elevation cursor-pointer"

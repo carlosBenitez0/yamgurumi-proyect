@@ -142,7 +142,7 @@ export default function Footer() {
                           </svg>
                         ),
                         label: "WhatsApp",
-                        href: "https://wa.me/50377311064",
+                        href: "https://api.whatsapp.com/send?phone=50377311064",
                       },
                       {
                         icon: (
@@ -241,7 +241,7 @@ export default function Footer() {
 
                 <div className="pt-2">
                   <a
-                    href="https://wa.me/50377311064"
+                    href="https://api.whatsapp.com/send?phone=50377311064"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-secondary text-white font-bold text-xs shadow-button hover:bg-secondary/90 transition-all tactile-press cursor-pointer"

@@ -12,8 +12,8 @@ export const metadata: Metadata = {
     "Escribile al taller de Yamgurumi: tu mensaje llega directo al chat de WhatsApp. Encargos personalizados, preguntas por piezas y entregas en El Salvador.",
 };
 
-const WHATSAPP_URL = `https://wa.me/50377311064?text=${encodeURIComponent(
-  "Hola Yamgurumi! Quiero consultar por una pieza.",
+const WHATSAPP_URL = `https://api.whatsapp.com/send?phone=50377311064&text=${encodeURIComponent(
+  `¡Hola Yamgurumi! ${String.fromCodePoint(0x2728)} Quiero consultar sobre un amigurumi personalizado ${String.fromCodePoint(0x1F9F6)}.`,
 )}`;
 
 /* ── Tarjeta del panel derecho ──────────────────────────── */

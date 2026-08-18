@@ -719,7 +719,7 @@ export default function MiTallerClient({ user, logoutAction }: MiTallerClientPro
                         {/* Botón WhatsApp de Consulta de Avances */}
                         <div className="flex justify-end pt-2">
                           <a
-                            href={`https://wa.me/50377311064?text=${encodeURIComponent(
+                            href={`https://api.whatsapp.com/send?phone=50377311064&text=${encodeURIComponent(
                               `¡Hola Yamgurumi! Quisiera consultar el estado y los avances de mi encargo #${order.id.slice(-6).toUpperCase()}. ¿Cómo va la elaboración de mi amigurumi?`
                             )}`}
                             target="_blank"

@@ -12,21 +12,28 @@ export const SHIPPING = {
 
 export const DELIVERY_ZONES = SHIPPING.zones;
 
-/* ── Texto del pedido ──────────────────────────────────── */
+/* ── Emojis dinámicos en tiempo de ejecución ──────────── */
 
-const WEBSITE_LINE = "\n—Enviado desde el sitio web de Yamgurumi";
+const E = {
+  SPARKLES: String.fromCodePoint(0x2728),
+  YARN: String.fromCodePoint(0x1F9F6),
+  CLIPBOARD: String.fromCodePoint(0x1F4CB),
+  MONEY: String.fromCodePoint(0x1F4B0),
+  PIN: String.fromCodePoint(0x1F4CD),
+  PHONE: String.fromCodePoint(0x1F4F1),
+  NOTE: String.fromCodePoint(0x1F4DD),
+  HEART: String.fromCodePoint(0x2764, 0xFE0F),
+};
 
 function formatItems(items: CartItem[]): string {
   return items
-    .map((item) => `• ${item.quantity}× ${item.name} — $${(item.price * item.quantity).toFixed(2)}`)
+    .map((item) => `  • ${item.quantity}× ${item.name} — $${(item.price * item.quantity).toFixed(2)}`)
     .join("\n");
 }
 
 function calculateSubtotal(items: CartItem[]): number {
   return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 }
-
-/* ── Enlace listo para pegar en WhatsApp ───────────────── */
 
 export interface DeliveryDetails {
   name: string;
@@ -35,7 +42,7 @@ export interface DeliveryDetails {
   note: string;
 }
 
-export function buildWhatsAppLink(
+export function buildCartMessageText(
   items: CartItem[],
   details: DeliveryDetails,
   discountCode?: string | null,
@@ -46,8 +53,11 @@ export function buildWhatsAppLink(
   const total = subtotal - discountAmount;
 
   const lines = [
-    "*Pedido para Yamgurumi*",
+    `${E.SPARKLES} *NUEVO PEDIDO DESDE LA WEB - YAMGURUMI* ${E.YARN}`,
     "",
+    `¡Hola! Quisiera realizar la compra de los siguientes amigurumis artesanales:`,
+    "",
+    `${E.CLIPBOARD} *Productos Seleccionados:*`,
     formatItems(items),
     "",
     `Subtotal: $${subtotal.toFixed(2)}`,
@@ -59,18 +69,28 @@ export function buildWhatsAppLink(
 
   lines.push(
     `Envío: ${SHIPPING.price}`,
-    `*Total:* $${total.toFixed(2)}`,
+    `${E.MONEY} *Total a Pagar:* *$${total.toFixed(2)}*`,
     "",
-    `*Nombre:* ${details.name.trim()}`,
-    `*Teléfono:* ${details.phone.trim()}`,
-    `*Zona:* ${details.zone}`,
+    `👤 *Cliente:* ${details.name.trim()}`,
+    `${E.PHONE} *WhatsApp / Teléfono:* ${details.phone.trim()}`,
+    `${E.PIN} *Zona de Entrega:* ${details.zone}`,
   );
 
   if (details.note.trim()) {
-    lines.push(`*Nota:* ${details.note.trim()}`);
+    lines.push(`${E.NOTE} *Nota Especial:* ${details.note.trim()}`);
   }
 
-  lines.push(WEBSITE_LINE);
+  lines.push("", `Quedo a la espera de sus datos de pago para confirmar. ¡Muchas gracias! ${E.HEART}`);
 
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
+  return lines.join("\n");
+}
+
+export function buildWhatsAppLink(
+  items: CartItem[],
+  details: DeliveryDetails,
+  discountCode?: string | null,
+  discountPercent: number = 0,
+): string {
+  const text = buildCartMessageText(items, details, discountCode, discountPercent);
+  return `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(text)}`;
 }

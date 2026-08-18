@@ -73,8 +73,11 @@ export default function ContactClient() {
   const remaining = 3 - litCount;
 
   const waLink = useMemo(() => {
+    const sparklesEmoji = String.fromCodePoint(0x2728);
+    const yarnEmoji = String.fromCodePoint(0x1F9F6);
+
     const text = [
-      "*Mensaje para Yamgurumi*",
+      `${sparklesEmoji} *CONSULTA DESDE LA WEB - YAMGURUMI* ${yarnEmoji}`,
       "",
       `*Motivo:* ${SUBJECTS[form.subject] ?? ""}`,
       `*Nombre:* ${form.name.trim()}`,
@@ -85,7 +88,7 @@ export default function ContactClient() {
     ]
       .join("\n")
       .replace(/\n{3,}/g, "\n\n");
-    return `https://wa.me/50377311064?text=${encodeURIComponent(text)}`;
+    return `https://api.whatsapp.com/send?phone=50377311064&text=${encodeURIComponent(text)}`;
   }, [form]);
 
   const setField = (
