@@ -123,11 +123,74 @@ export default function AdminOrdersClient({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const getWhatsAppUrl = (phone: string, orderId: string, trackingCode?: string | null) => {
-    const cleanPhone = phone.replace(/[^0-9]/g, '');
-    const text = trackingCode
-      ? `¡Hola! 🧶 Te saludamos de Yamgurumi. Tu pedido #${orderId} ya fue despachado. Tu número de guía de seguimiento es: ${trackingCode}. ¡Muchas gracias por tu compra!`
-      : `¡Hola! 🧶 Te saludamos de Yamgurumi. Nos comunicamos con respecto a tu pedido #${orderId}.`;
+  const getWhatsAppUrl = (
+    order: OrderData,
+    customTracking?: string | null,
+    overrideStatus?: OrderStatus
+  ) => {
+    const rawPhone = order.phone || '77311064';
+    const digits = rawPhone.replace(/[^0-9]/g, '');
+    const cleanPhone = digits.length === 8 ? `503${digits}` : digits;
+
+    const customerName = order.user?.name || order.email.split('@')[0] || 'Cliente';
+    const trackingCode = customTracking !== undefined ? customTracking : order.trackingNumber;
+    const status = overrideStatus ?? order.status;
+
+    const itemsList = order.items
+      .map(
+        (item) =>
+          `  • ${item.quantity}x ${item.name}${item.size ? ` (${item.size})` : ''} — $${(
+            item.price * item.quantity
+          ).toFixed(2)}`
+      )
+      .join('\n');
+
+    let text = '';
+
+    if (status === 'SHIPPED') {
+      text =
+        `🚚 *¡TU PEDIDO DE YAMGURUMI VA EN CAMINO!* 🧶\n\n` +
+        `¡Hola, *${customerName}*!\n` +
+        `Te notificamos que tu pedido *#${order.id}* ha sido despachado.\n\n` +
+        `📦 *Número de Guía:* *${trackingCode || 'GUIA-PENDIENTE'}*\n` +
+        `📍 *Dirección de Entrega:* ${order.zone}\n\n` +
+        `📋 *Contenido del Paquete:*\n${itemsList}\n\n` +
+        `💰 *Total:* $${order.total.toFixed(2)}\n\n` +
+        `Recibirás tu pedido muy pronto. ¡Muchas gracias por apoyar nuestro taller de amigurumis artesanales! ✨`;
+    } else if (status === 'CONFIRMED') {
+      text =
+        `🎉 *¡PAGO CONFIRMADO EN YAMGURUMI!* 🧶\n\n` +
+        `¡Hola, *${customerName}*!\n` +
+        `Hemos verificado tu pago correctamente para el pedido *#${order.id}*.\n\n` +
+        `📋 *Ítems en Confección:*\n${itemsList}\n\n` +
+        `💰 *Total Cancelado:* $${order.total.toFixed(2)}\n` +
+        `📍 *Destino:* ${order.zone}\n\n` +
+        `🧵 Nuestro equipo ya está tejiendo y preparando tus muñecos con hilo 100% hipoalergénico. Te enviaremos tu guía en cuanto salga a reparto. ¡Muchas gracias! ❤️`;
+    } else if (status === 'DELIVERED') {
+      text =
+        `🥳 *¡PEDIDO ENTREGADO!* 🧶\n\n` +
+        `¡Hola, *${customerName}*!\n` +
+        `Confirmamos que tu pedido *#${order.id}* de Yamgurumi fue entregado exitosamente.\n\n` +
+        `📋 *Detalle del Pedido:*\n${itemsList}\n\n` +
+        `Esperamos que disfrutes mucho tu nuevo amigurumi. ❤️ ¡Gracias por confiar en nuestras creaciones hechas a mano! 🌸`;
+    } else if (status === 'CANCELLED') {
+      text =
+        `⚠️ *NOTIFICACIÓN DE PEDIDO EN YAMGURUMI* 🧶\n\n` +
+        `Hola, *${customerName}*.\n` +
+        `Te informamos que tu pedido *#${order.id}* ha sido registrado como cancelado.\n\n` +
+        `Si necesitas asistencia o deseas realizar un nuevo encargo, estamos a tu disposición por este medio.`;
+    } else {
+      // PENDING
+      text =
+        `✨ *DETALLES DE TU PEDIDO EN YAMGURUMI* 🧶\n\n` +
+        `¡Hola, *${customerName}*!\n` +
+        `Te compartimos la información de tu orden *#${order.id}*:\n\n` +
+        `📋 *Productos:*\n${itemsList}\n\n` +
+        `💰 *Total:* $${order.total.toFixed(2)}\n` +
+        `📍 *Dirección de Envío:* ${order.zone}\n\n` +
+        `Quedamos atentos a tus comentarios para coordinar el pago y la entrega. ¡Muchas gracias! 🧶`;
+    }
+
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
   };
 
@@ -363,7 +426,7 @@ export default function AdminOrdersClient({
                       <td className="px-3.5 py-3 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <a
-                            href={getWhatsAppUrl(order.phone, order.id, order.trackingNumber)}
+                            href={getWhatsAppUrl(order)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/60 rounded-[6px] transition-colors"
@@ -521,11 +584,11 @@ export default function AdminOrdersClient({
                     />
                     {selectedOrder && (
                       <a
-                        href={getWhatsAppUrl(selectedOrder.phone, selectedOrder.id, trackingInput)}
+                        href={getWhatsAppUrl(selectedOrder, trackingInput, editingStatus)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[6px] font-semibold text-xs shrink-0 flex items-center gap-1 transition-colors shadow-2xs"
-                        title="Enviar mensaje con la guía por WhatsApp"
+                        title="Enviar mensaje estructurado con la guía por WhatsApp"
                       >
                         <FaWhatsapp className="text-sm" />
                         <span className="hidden sm:inline">Notificar</span>
