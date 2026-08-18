@@ -358,19 +358,6 @@ export default function AdminOrdersClient({
                           <StatusIcon className="text-xs shrink-0" />
                           <span>{statusConf.label}</span>
                         </span>
-                        {order.trackingNumber && (
-                          <button
-                            type="button"
-                            onClick={(e) => copyTrackingCode(order.trackingNumber!, e)}
-                            className="text-[10px] bg-purple-50 hover:bg-purple-100 border border-purple-200/80 text-purple-900 font-mono mt-1 px-2 py-0.5 rounded-[4px] flex items-center gap-1 transition-all cursor-pointer shadow-2xs group"
-                            title="Haz clic para copiar el número de guía al portapapeles"
-                          >
-                            <MdLocalShipping className="text-xs text-purple-600 shrink-0" />
-                            <span>
-                              {copiedId === order.trackingNumber ? '✓ ¡Guía Copiada!' : order.trackingNumber}
-                            </span>
-                          </button>
-                        )}
                       </td>
 
                       <td className="px-3.5 py-3 text-right">
