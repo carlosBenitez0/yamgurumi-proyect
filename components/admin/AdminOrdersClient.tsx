@@ -149,46 +149,46 @@ export default function AdminOrdersClient({
 
     if (status === 'SHIPPED') {
       text =
-        `🚚 *¡TU PEDIDO DE YAMGURUMI VA EN CAMINO!* 🧶\n\n` +
+        `\u{1F69A} *¡TU PEDIDO DE YAMGURUMI VA EN CAMINO!* \u{1F9F6}\n\n` +
         `¡Hola, *${customerName}*!\n` +
         `Te notificamos que tu pedido *#${order.id}* ha sido despachado.\n\n` +
-        `📦 *Número de Guía:* *${trackingCode || 'GUIA-PENDIENTE'}*\n` +
-        `📍 *Dirección de Entrega:* ${order.zone}\n\n` +
-        `📋 *Contenido del Paquete:*\n${itemsList}\n\n` +
-        `💰 *Total:* $${order.total.toFixed(2)}\n\n` +
-        `Recibirás tu pedido muy pronto. ¡Muchas gracias por apoyar nuestro taller de amigurumis artesanales! ✨`;
+        `\u{1F4E6} *Número de Guía:* *${trackingCode || 'GUIA-PENDIENTE'}*\n` +
+        `\u{1F4CD} *Dirección de Entrega:* ${order.zone}\n\n` +
+        `\u{1F4CB} *Contenido del Paquete:*\n${itemsList}\n\n` +
+        `\u{1F4B0} *Total:* $${order.total.toFixed(2)}\n\n` +
+        `Recibirás tu pedido muy pronto. ¡Muchas gracias por apoyar nuestro taller de amigurumis artesanales! \u2728`;
     } else if (status === 'CONFIRMED') {
       text =
-        `🎉 *¡PAGO CONFIRMADO EN YAMGURUMI!* 🧶\n\n` +
+        `\u{1F389} *¡PAGO CONFIRMADO EN YAMGURUMI!* \u{1F9F6}\n\n` +
         `¡Hola, *${customerName}*!\n` +
         `Hemos verificado tu pago correctamente para el pedido *#${order.id}*.\n\n` +
-        `📋 *Ítems en Confección:*\n${itemsList}\n\n` +
-        `💰 *Total Cancelado:* $${order.total.toFixed(2)}\n` +
-        `📍 *Destino:* ${order.zone}\n\n` +
-        `🧵 Nuestro equipo ya está tejiendo y preparando tus muñecos con hilo 100% hipoalergénico. Te enviaremos tu guía en cuanto salga a reparto. ¡Muchas gracias! ❤️`;
+        `\u{1F4CB} *Ítems en Confección:*\n${itemsList}\n\n` +
+        `\u{1F4B0} *Total Cancelado:* $${order.total.toFixed(2)}\n` +
+        `\u{1F4CD} *Destino:* ${order.zone}\n\n` +
+        `\u{1F9F5} Nuestro equipo ya está tejiendo y preparando tus muñecos con hilo 100% hipoalergénico. Te enviaremos tu guía en cuanto salga a reparto. ¡Muchas gracias! \u2764\uFE0F`;
     } else if (status === 'DELIVERED') {
       text =
-        `🥳 *¡PEDIDO ENTREGADO!* 🧶\n\n` +
+        `\u{1F973} *¡PEDIDO ENTREGADO!* \u{1F9F6}\n\n` +
         `¡Hola, *${customerName}*!\n` +
         `Confirmamos que tu pedido *#${order.id}* de Yamgurumi fue entregado exitosamente.\n\n` +
-        `📋 *Detalle del Pedido:*\n${itemsList}\n\n` +
-        `Esperamos que disfrutes mucho tu nuevo amigurumi. ❤️ ¡Gracias por confiar en nuestras creaciones hechas a mano! 🌸`;
+        `\u{1F4CB} *Detalle del Pedido:*\n${itemsList}\n\n` +
+        `Esperamos que disfrutes mucho tu nuevo amigurumi. \u2764\uFE0F ¡Gracias por confiar en nuestras creaciones hechas a mano! \u{1F338}`;
     } else if (status === 'CANCELLED') {
       text =
-        `⚠️ *NOTIFICACIÓN DE PEDIDO EN YAMGURUMI* 🧶\n\n` +
+        `\u26A0\uFE0F *NOTIFICACIÓN DE PEDIDO EN YAMGURUMI* \u{1F9F6}\n\n` +
         `Hola, *${customerName}*.\n` +
         `Te informamos que tu pedido *#${order.id}* ha sido registrado como cancelado.\n\n` +
         `Si necesitas asistencia o deseas realizar un nuevo encargo, estamos a tu disposición por este medio.`;
     } else {
       // PENDING
       text =
-        `✨ *DETALLES DE TU PEDIDO EN YAMGURUMI* 🧶\n\n` +
+        `\u2728 *DETALLES DE TU PEDIDO EN YAMGURUMI* \u{1F9F6}\n\n` +
         `¡Hola, *${customerName}*!\n` +
         `Te compartimos la información de tu orden *#${order.id}*:\n\n` +
-        `📋 *Productos:*\n${itemsList}\n\n` +
-        `💰 *Total:* $${order.total.toFixed(2)}\n` +
-        `📍 *Dirección de Envío:* ${order.zone}\n\n` +
-        `Quedamos atentos a tus comentarios para coordinar el pago y la entrega. ¡Muchas gracias! 🧶`;
+        `\u{1F4CB} *Productos:*\n${itemsList}\n\n` +
+        `\u{1F4B0} *Total:* $${order.total.toFixed(2)}\n` +
+        `\u{1F4CD} *Dirección de Envío:* ${order.zone}\n\n` +
+        `Quedamos atentos a tus comentarios para coordinar el pago y la entrega. ¡Muchas gracias! \u{1F9F6}`;
     }
 
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;

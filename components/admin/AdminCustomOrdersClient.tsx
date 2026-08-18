@@ -178,30 +178,30 @@ export default function AdminCustomOrdersClient({
 
     if (status === 'QUOTED' || price) {
       text =
-        `🧶 *COTIZACIÓN DE ENCARGO A MEDIDA - YAMGURUMI* ✨\n\n` +
+        `\u{1F9F6} *COTIZACIÓN DE ENCARGO A MEDIDA - YAMGURUMI* \u2728\n\n` +
         `¡Hola, *${co.customerName}*!\n` +
         `Hemos revisado la solicitud para tu muñeco personalizado:\n` +
-        `📌 *"${co.title}"*\n\n` +
-        `💰 *Presupuesto Cotizado:* *$${price || '0.00'}*\n` +
-        `📏 *Tamaño Deseado:* ${co.desiredSize || 'Estándar'}\n\n` +
-        `🧵 *Detalles de confección:* Tejido 100% hecho a mano con hilo de algodón hipoalergénico y relleno silicón de alta durabilidad.\n\n` +
-        `¿Deseas confirmar este pedido para agendar la fecha de tejido? ¡Quedamos a tu servicio! ❤️`;
+        `\u{1F4CD} *"${co.title}"*\n\n` +
+        `\u{1F4B0} *Presupuesto Cotizado:* *$${price || '0.00'}*\n` +
+        `\u{1F4CF} *Tamaño Deseado:* ${co.desiredSize || 'Estándar'}\n\n` +
+        `\u{1F9F5} *Detalles de confección:* Tejido 100% hecho a mano con hilo de algodón hipoalergénico y relleno silicón de alta durabilidad.\n\n` +
+        `¿Deseas confirmar este pedido para agendar la fecha de tejido? ¡Quedamos a tu servicio! \u2764\uFE0F`;
     } else if (status === 'IN_PRODUCTION') {
       text =
-        `🧵 *¡TU ENCARGO A MEDIDA ESTÁ EN TEJIDO!* 🧶\n\n` +
+        `\u{1F9F5} *¡TU ENCARGO A MEDIDA ESTÁ EN TEJIDO!* \u{1F9F6}\n\n` +
         `¡Hola, *${co.customerName}*!\n` +
         `Te informamos que nuestro equipo artesanal ha comenzado a tejer tu encargo personalizado:\n` +
-        `📌 *"${co.title}"*\n\n` +
-        `Te notificaremos en cuanto esté listo para su entrega. ¡Gracias por elegir lo artesanal! ✨`;
+        `\u{1F4CD} *"${co.title}"*\n\n` +
+        `Te notificaremos en cuanto esté listo para su entrega. ¡Gracias por elegir lo artesanal! \u2728`;
     } else if (status === 'COMPLETED') {
       text =
-        `🥳 *¡TU ENCARGO ESTÁ LISTO Y COMPLETADO!* 🧶\n\n` +
+        `\u{1F973} *¡TU ENCARGO ESTÁ LISTO Y COMPLETADO!* \u{1F9F6}\n\n` +
         `¡Hola, *${co.customerName}*!\n` +
         `Tu muñeco personalizado *"${co.title}"* ya está 100% terminado y listo para su entrega o retiro.\n\n` +
-        `¡Esperamos que te encante tanto como a nosotros tejerlo! ❤️`;
+        `¡Esperamos que te encante tanto como a nosotros tejerlo! \u2764\uFE0F`;
     } else {
       text =
-        `🧶 *CONSULTA DE ENCARGO A MEDIDA - YAMGURUMI* ✨\n\n` +
+        `\u{1F9F6} *CONSULTA DE ENCARGO A MEDIDA - YAMGURUMI* \u2728\n\n` +
         `¡Hola, *${co.customerName}*!\n` +
         `Te saludamos en relación a tu solicitud *"${co.title}"*.\n\n` +
         `¿Tienes alguna duda o detalle adicional sobre la foto/referencia? ¡Estamos a la orden!`;
