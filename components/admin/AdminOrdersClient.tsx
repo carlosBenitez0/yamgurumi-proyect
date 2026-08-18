@@ -15,6 +15,7 @@ import {
   MdClose,
   MdPrint,
   MdRefresh,
+  MdContentCopy,
 } from 'react-icons/md';
 import { FaWhatsapp } from 'react-icons/fa';
 import { updateOrderStatusAction, seedSampleOrdersIfEmptyAction } from '@/src/actions/admin/orders';
@@ -139,15 +140,11 @@ export default function AdminOrdersClient({
     THREAD: String.fromCodePoint(0x1F9F5),
   };
 
-  const getWhatsAppUrl = (
+  const getFormattedMessageText = (
     order: OrderData,
     customTracking?: string | null,
     overrideStatus?: OrderStatus
   ) => {
-    const rawPhone = order.phone || '77311064';
-    const digits = rawPhone.replace(/[^0-9]/g, '');
-    const cleanPhone = digits.length === 8 ? `503${digits}` : digits;
-
     const customerName = order.user?.name || order.email.split('@')[0] || 'Cliente';
     const trackingCode = customTracking !== undefined ? customTracking : order.trackingNumber;
     const status = overrideStatus ?? order.status;
@@ -161,10 +158,8 @@ export default function AdminOrdersClient({
       )
       .join('\n');
 
-    let text = '';
-
     if (status === 'SHIPPED') {
-      text =
+      return (
         `${E.TRUCK} *¡TU PEDIDO DE YAMGURUMI VA EN CAMINO!* ${E.YARN}\n\n` +
         `¡Hola, *${customerName}*!\n` +
         `Te notificamos que tu pedido *#${order.id}* ha sido despachado.\n\n` +
@@ -172,42 +167,58 @@ export default function AdminOrdersClient({
         `${E.PIN} *Dirección de Entrega:* ${order.zone}\n\n` +
         `${E.CLIPBOARD} *Contenido del Paquete:*\n${itemsList}\n\n` +
         `${E.MONEY} *Total:* $${order.total.toFixed(2)}\n\n` +
-        `Recibirás tu pedido muy pronto. ¡Muchas gracias por apoyar nuestro taller de amigurumis artesanales! ${E.SPARKLES}`;
+        `Recibirás tu pedido muy pronto. ¡Muchas gracias por apoyar nuestro taller de amigurumis artesanales! ${E.SPARKLES}`
+      );
     } else if (status === 'CONFIRMED') {
-      text =
+      return (
         `${E.PARTY} *¡PAGO CONFIRMADO EN YAMGURUMI!* ${E.YARN}\n\n` +
         `¡Hola, *${customerName}*!\n` +
         `Hemos verificado tu pago correctamente para el pedido *#${order.id}*.\n\n` +
         `${E.CLIPBOARD} *Ítems en Confección:*\n${itemsList}\n\n` +
         `${E.MONEY} *Total Cancelado:* $${order.total.toFixed(2)}\n` +
         `${E.PIN} *Destino:* ${order.zone}\n\n` +
-        `${E.THREAD} Nuestro equipo ya está tejiendo y preparando tus muñecos con hilo 100% hipoalergénico. Te enviaremos tu guía en cuanto salga a reparto. ¡Muchas gracias! ${E.HEART}`;
+        `${E.THREAD} Nuestro equipo ya está tejiendo y preparando tus muñecos con hilo 100% hipoalergénico. Te enviaremos tu guía en cuanto salga a reparto. ¡Muchas gracias! ${E.HEART}`
+      );
     } else if (status === 'DELIVERED') {
-      text =
+      return (
         `${E.WOO} *¡PEDIDO ENTREGADO!* ${E.YARN}\n\n` +
         `¡Hola, *${customerName}*!\n` +
         `Confirmamos que tu pedido *#${order.id}* de Yamgurumi fue entregado exitosamente.\n\n` +
         `${E.CLIPBOARD} *Detalle del Pedido:*\n${itemsList}\n\n` +
-        `Esperamos que disfrutes mucho tu nuevo amigurumi. ${E.HEART} ¡Gracias por confiar en nuestras creaciones hechas a mano! ${E.FLOWER}`;
+        `Esperamos que disfrutes mucho tu nuevo amigurumi. ${E.HEART} ¡Gracias por confiar en nuestras creaciones hechas a mano! ${E.FLOWER}`
+      );
     } else if (status === 'CANCELLED') {
-      text =
+      return (
         `${E.WARNING} *NOTIFICACIÓN DE PEDIDO EN YAMGURUMI* ${E.YARN}\n\n` +
         `Hola, *${customerName}*.\n` +
         `Te informamos que tu pedido *#${order.id}* ha sido registrado como cancelado.\n\n` +
-        `Si necesitas asistencia o deseas realizar un nuevo encargo, estamos a tu disposición por este medio.`;
+        `Si necesitas asistencia o deseas realizar un nuevo encargo, estamos a tu disposición por este medio.`
+      );
     } else {
       // PENDING
-      text =
+      return (
         `${E.SPARKLES} *DETALLES DE TU PEDIDO EN YAMGURUMI* ${E.YARN}\n\n` +
         `¡Hola, *${customerName}*!\n` +
         `Te compartimos la información de tu orden *#${order.id}*:\n\n` +
         `${E.CLIPBOARD} *Productos:*\n${itemsList}\n\n` +
         `${E.MONEY} *Total:* $${order.total.toFixed(2)}\n` +
         `${E.PIN} *Dirección de Envío:* ${order.zone}\n\n` +
-        `Quedamos atentos a tus comentarios para coordinar el pago y la entrega. ¡Muchas gracias! ${E.YARN}`;
+        `Quedamos atentos a tus comentarios para coordinar el pago y la entrega. ¡Muchas gracias! ${E.YARN}`
+      );
     }
+  };
 
-    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+  const getWhatsAppUrl = (
+    order: OrderData,
+    customTracking?: string | null,
+    overrideStatus?: OrderStatus
+  ) => {
+    const rawPhone = order.phone || '77311064';
+    const digits = rawPhone.replace(/[^0-9]/g, '');
+    const cleanPhone = digits.length === 8 ? `503${digits}` : digits;
+
+    const text = getFormattedMessageText(order, customTracking, overrideStatus);
+    return `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(text)}`;
   };
 
   // Filtrado dinámico
@@ -599,16 +610,33 @@ export default function AdminOrdersClient({
                       className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700 font-mono"
                     />
                     {selectedOrder && (
-                      <a
-                        href={getWhatsAppUrl(selectedOrder, trackingInput, editingStatus)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[6px] font-semibold text-xs shrink-0 flex items-center gap-1 transition-colors shadow-2xs"
-                        title="Enviar mensaje estructurado con la guía por WhatsApp"
-                      >
-                        <FaWhatsapp className="text-sm" />
-                        <span className="hidden sm:inline">Notificar</span>
-                      </a>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const txt = getFormattedMessageText(selectedOrder, trackingInput, editingStatus);
+                            navigator.clipboard.writeText(txt);
+                            setCopiedId('MODAL_MSG');
+                            setTimeout(() => setCopiedId(null), 2500);
+                          }}
+                          className="px-2.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-[6px] font-semibold text-xs flex items-center gap-1 transition-colors border border-stone-200/80"
+                          title="Copiar texto formateado con emojis para pegar directo en WhatsApp"
+                        >
+                          <MdContentCopy className="text-sm text-stone-500" />
+                          <span>{copiedId === 'MODAL_MSG' ? '¡Copiado! ✓' : 'Copiar Texto'}</span>
+                        </button>
+
+                        <a
+                          href={getWhatsAppUrl(selectedOrder, trackingInput, editingStatus)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[6px] font-semibold text-xs flex items-center gap-1 transition-colors shadow-2xs"
+                          title="Abrir chat en WhatsApp"
+                        >
+                          <FaWhatsapp className="text-sm" />
+                          <span className="hidden sm:inline">Abrir WhatsApp</span>
+                        </a>
+                      </div>
                     )}
                   </div>
                 </div>

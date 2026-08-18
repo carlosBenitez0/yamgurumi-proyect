@@ -177,18 +177,12 @@ export default function AdminCustomOrdersClient({
     WOO: String.fromCodePoint(0x1F973),
   };
 
-  const getWhatsAppQuoteUrl = (co: CustomOrderData, priceOverride?: string, statusOverride?: CustomOrderStatus) => {
-    const rawPhone = co.phone || '77311064';
-    const digits = rawPhone.replace(/[^0-9]/g, '');
-    const cleanPhone = digits.length === 8 ? `503${digits}` : digits;
-
+  const getFormattedQuoteText = (co: CustomOrderData, priceOverride?: string, statusOverride?: CustomOrderStatus) => {
     const price = priceOverride !== undefined ? priceOverride : (co.quotedPrice ? String(co.quotedPrice) : '');
     const status = statusOverride ?? co.status;
 
-    let text = '';
-
     if (status === 'QUOTED' || price) {
-      text =
+      return (
         `${E.YARN} *COTIZACIÓN DE ENCARGO A MEDIDA - YAMGURUMI* ${E.SPARKLES}\n\n` +
         `¡Hola, *${co.customerName}*!\n` +
         `Hemos revisado la solicitud para tu muñeco personalizado:\n` +
@@ -196,29 +190,40 @@ export default function AdminCustomOrdersClient({
         `${E.MONEY} *Presupuesto Cotizado:* *$${price || '0.00'}*\n` +
         `${E.RULER} *Tamaño Deseado:* ${co.desiredSize || 'Estándar'}\n\n` +
         `${E.THREAD} *Detalles de confección:* Tejido 100% hecho a mano con hilo de algodón hipoalergénico y relleno silicón de alta durabilidad.\n\n` +
-        `¿Deseas confirmar este pedido para agendar la fecha de tejido? ¡Quedamos a tu servicio! ${E.HEART}`;
+        `¿Deseas confirmar este pedido para agendar la fecha de tejido? ¡Quedamos a tu servicio! ${E.HEART}`
+      );
     } else if (status === 'IN_PRODUCTION') {
-      text =
+      return (
         `${E.THREAD} *¡TU ENCARGO A MEDIDA ESTÁ EN TEJIDO!* ${E.YARN}\n\n` +
         `¡Hola, *${co.customerName}*!\n` +
         `Te informamos que nuestro equipo artesanal ha comenzado a tejer tu encargo personalizado:\n` +
         `${E.PIN} *"${co.title}"*\n\n` +
-        `Te notificaremos en cuanto esté listo para su entrega. ¡Gracias por elegir lo artesanal! ${E.SPARKLES}`;
+        `Te notificaremos en cuanto esté listo para su entrega. ¡Gracias por elegir lo artesanal! ${E.SPARKLES}`
+      );
     } else if (status === 'COMPLETED') {
-      text =
+      return (
         `${E.WOO} *¡TU ENCARGO ESTÁ LISTO Y COMPLETADO!* ${E.YARN}\n\n` +
         `¡Hola, *${co.customerName}*!\n` +
         `Tu muñeco personalizado *"${co.title}"* ya está 100% terminado y listo para su entrega o retiro.\n\n` +
-        `¡Esperamos que te encante tanto como a nosotros tejerlo! ${E.HEART}`;
+        `¡Esperamos que te encante tanto como a nosotros tejerlo! ${E.HEART}`
+      );
     } else {
-      text =
+      return (
         `${E.YARN} *CONSULTA DE ENCARGO A MEDIDA - YAMGURUMI* ${E.SPARKLES}\n\n` +
         `¡Hola, *${co.customerName}*!\n` +
         `Te saludamos en relación a tu solicitud *"${co.title}"*.\n\n` +
-        `¿Tienes alguna duda o detalle adicional sobre la foto/referencia? ¡Estamos a la orden!`;
+        `¿Tienes alguna duda o detalle adicional sobre la foto/referencia? ¡Estamos a la orden!`
+      );
     }
+  };
 
-    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+  const getWhatsAppQuoteUrl = (co: CustomOrderData, priceOverride?: string, statusOverride?: CustomOrderStatus) => {
+    const rawPhone = co.phone || '77311064';
+    const digits = rawPhone.replace(/[^0-9]/g, '');
+    const cleanPhone = digits.length === 8 ? `503${digits}` : digits;
+
+    const text = getFormattedQuoteText(co, priceOverride, statusOverride);
+    return `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(text)}`;
   };
 
   const handleSeed = () => {
@@ -518,15 +523,31 @@ export default function AdminCustomOrdersClient({
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-stone-100">
-                <a
-                  href={getWhatsAppQuoteUrl(selectedOrder, quotedPriceInput, editingStatus)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[6px] text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
-                >
-                  <FaWhatsapp className="text-base" />
-                  <span>Enviar Cotización por WhatsApp</span>
-                </a>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const txt = getFormattedQuoteText(selectedOrder, quotedPriceInput, editingStatus);
+                      navigator.clipboard.writeText(txt);
+                      setSuccessMsg('¡Texto formateado con emojis copiado al portapapeles! Listo para pegar en WhatsApp.');
+                      setTimeout(() => setSuccessMsg(''), 3000);
+                    }}
+                    className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-[6px] text-xs font-semibold flex items-center gap-1 transition-colors border border-stone-200"
+                    title="Copiar mensaje con emojis para pegar en WhatsApp"
+                  >
+                    <span>Copiar Texto</span>
+                  </button>
+
+                  <a
+                    href={getWhatsAppQuoteUrl(selectedOrder, quotedPriceInput, editingStatus)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[6px] text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
+                  >
+                    <FaWhatsapp className="text-base" />
+                    <span>Abrir WhatsApp</span>
+                  </a>
+                </div>
 
                 <div className="flex items-center gap-2">
                   <button
