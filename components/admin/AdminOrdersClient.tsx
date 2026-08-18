@@ -57,7 +57,7 @@ interface OrderData {
 
 const STATUS_CONFIG: Record<
   OrderStatus,
-  { label: string; bg: string; text: string; border: string; icon: React.ElementType }
+  { label: string; bg: string; text: string; border: string; icon: any }
 > = {
   PENDING: {
     label: 'Pendiente de Pago',

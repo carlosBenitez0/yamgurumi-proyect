@@ -42,7 +42,7 @@ interface CustomOrderData {
 
 const STATUS_CONFIG: Record<
   CustomOrderStatus,
-  { label: string; bg: string; text: string; border: string; icon: React.ElementType }
+  { label: string; bg: string; text: string; border: string; icon: any }
 > = {
   PENDING: {
     label: 'Pendiente de Cotizar',

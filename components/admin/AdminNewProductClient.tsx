@@ -287,6 +287,7 @@ export default function AdminNewProductClient({
           description: formData.description || 'Amigurumi tejido a mano en crochet.',
           materials: formData.materials || 'Hilo de algodón 100% hipoalergénico',
           imageUrls: [formData.imageUrl],
+          tags: ['Artesanal', 'Kawaii'],
           isFeatured: formData.isFeatured,
           isActive: formData.isActive,
         });

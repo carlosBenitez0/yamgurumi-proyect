@@ -70,6 +70,8 @@ export default function AdminCategoriesClient({
           name: formData.name,
           icon: formData.icon,
           description: formData.description,
+          sortOrder: categories.length + 1,
+          isActive: true,
         });
 
         if (res.success && res.category) {
