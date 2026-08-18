@@ -101,6 +101,16 @@ export default function AdminOrdersClient({
 }: {
   initialOrders: OrderData[];
 }) {
+  const [orders, setOrders] = useState<OrderData[]>(initialOrders);
+  const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+  const [search, setSearch] = useState('');
+  const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
+  const [editingStatus, setEditingStatus] = useState<OrderStatus>('PENDING');
+  const [trackingInput, setTrackingInput] = useState('');
+  const [notesInput, setNotesInput] = useState('');
+  const [isPending, startTransition] = useTransition();
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const copyTrackingCode = (code: string, e?: React.MouseEvent) => {
