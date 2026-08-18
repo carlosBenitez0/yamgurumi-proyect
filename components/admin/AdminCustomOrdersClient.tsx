@@ -166,6 +166,17 @@ export default function AdminCustomOrdersClient({
     });
   };
 
+  const E = {
+    SPARKLES: String.fromCodePoint(0x2728),
+    YARN: String.fromCodePoint(0x1F9F6),
+    PIN: String.fromCodePoint(0x1F4CD),
+    MONEY: String.fromCodePoint(0x1F4B0),
+    RULER: String.fromCodePoint(0x1F4CF),
+    THREAD: String.fromCodePoint(0x1F9F5),
+    HEART: String.fromCodePoint(0x2764, 0xFE0F),
+    WOO: String.fromCodePoint(0x1F973),
+  };
+
   const getWhatsAppQuoteUrl = (co: CustomOrderData, priceOverride?: string, statusOverride?: CustomOrderStatus) => {
     const rawPhone = co.phone || '77311064';
     const digits = rawPhone.replace(/[^0-9]/g, '');
@@ -178,30 +189,30 @@ export default function AdminCustomOrdersClient({
 
     if (status === 'QUOTED' || price) {
       text =
-        `\u{1F9F6} *COTIZACIÓN DE ENCARGO A MEDIDA - YAMGURUMI* \u2728\n\n` +
+        `${E.YARN} *COTIZACIÓN DE ENCARGO A MEDIDA - YAMGURUMI* ${E.SPARKLES}\n\n` +
         `¡Hola, *${co.customerName}*!\n` +
         `Hemos revisado la solicitud para tu muñeco personalizado:\n` +
-        `\u{1F4CD} *"${co.title}"*\n\n` +
-        `\u{1F4B0} *Presupuesto Cotizado:* *$${price || '0.00'}*\n` +
-        `\u{1F4CF} *Tamaño Deseado:* ${co.desiredSize || 'Estándar'}\n\n` +
-        `\u{1F9F5} *Detalles de confección:* Tejido 100% hecho a mano con hilo de algodón hipoalergénico y relleno silicón de alta durabilidad.\n\n` +
-        `¿Deseas confirmar este pedido para agendar la fecha de tejido? ¡Quedamos a tu servicio! \u2764\uFE0F`;
+        `${E.PIN} *"${co.title}"*\n\n` +
+        `${E.MONEY} *Presupuesto Cotizado:* *$${price || '0.00'}*\n` +
+        `${E.RULER} *Tamaño Deseado:* ${co.desiredSize || 'Estándar'}\n\n` +
+        `${E.THREAD} *Detalles de confección:* Tejido 100% hecho a mano con hilo de algodón hipoalergénico y relleno silicón de alta durabilidad.\n\n` +
+        `¿Deseas confirmar este pedido para agendar la fecha de tejido? ¡Quedamos a tu servicio! ${E.HEART}`;
     } else if (status === 'IN_PRODUCTION') {
       text =
-        `\u{1F9F5} *¡TU ENCARGO A MEDIDA ESTÁ EN TEJIDO!* \u{1F9F6}\n\n` +
+        `${E.THREAD} *¡TU ENCARGO A MEDIDA ESTÁ EN TEJIDO!* ${E.YARN}\n\n` +
         `¡Hola, *${co.customerName}*!\n` +
         `Te informamos que nuestro equipo artesanal ha comenzado a tejer tu encargo personalizado:\n` +
-        `\u{1F4CD} *"${co.title}"*\n\n` +
-        `Te notificaremos en cuanto esté listo para su entrega. ¡Gracias por elegir lo artesanal! \u2728`;
+        `${E.PIN} *"${co.title}"*\n\n` +
+        `Te notificaremos en cuanto esté listo para su entrega. ¡Gracias por elegir lo artesanal! ${E.SPARKLES}`;
     } else if (status === 'COMPLETED') {
       text =
-        `\u{1F973} *¡TU ENCARGO ESTÁ LISTO Y COMPLETADO!* \u{1F9F6}\n\n` +
+        `${E.WOO} *¡TU ENCARGO ESTÁ LISTO Y COMPLETADO!* ${E.YARN}\n\n` +
         `¡Hola, *${co.customerName}*!\n` +
         `Tu muñeco personalizado *"${co.title}"* ya está 100% terminado y listo para su entrega o retiro.\n\n` +
-        `¡Esperamos que te encante tanto como a nosotros tejerlo! \u2764\uFE0F`;
+        `¡Esperamos que te encante tanto como a nosotros tejerlo! ${E.HEART}`;
     } else {
       text =
-        `\u{1F9F6} *CONSULTA DE ENCARGO A MEDIDA - YAMGURUMI* \u2728\n\n` +
+        `${E.YARN} *CONSULTA DE ENCARGO A MEDIDA - YAMGURUMI* ${E.SPARKLES}\n\n` +
         `¡Hola, *${co.customerName}*!\n` +
         `Te saludamos en relación a tu solicitud *"${co.title}"*.\n\n` +
         `¿Tienes alguna duda o detalle adicional sobre la foto/referencia? ¡Estamos a la orden!`;

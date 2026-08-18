@@ -123,6 +123,22 @@ export default function AdminOrdersClient({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const E = {
+    SPARKLES: String.fromCodePoint(0x2728),
+    YARN: String.fromCodePoint(0x1F9F6),
+    TRUCK: String.fromCodePoint(0x1F69A),
+    PACKAGE: String.fromCodePoint(0x1F4E6),
+    PIN: String.fromCodePoint(0x1F4CD),
+    CLIPBOARD: String.fromCodePoint(0x1F4CB),
+    MONEY: String.fromCodePoint(0x1F4B0),
+    PARTY: String.fromCodePoint(0x1F389),
+    WOO: String.fromCodePoint(0x1F973),
+    HEART: String.fromCodePoint(0x2764, 0xFE0F),
+    FLOWER: String.fromCodePoint(0x1F338),
+    WARNING: String.fromCodePoint(0x26A0, 0xFE0F),
+    THREAD: String.fromCodePoint(0x1F9F5),
+  };
+
   const getWhatsAppUrl = (
     order: OrderData,
     customTracking?: string | null,
@@ -149,46 +165,46 @@ export default function AdminOrdersClient({
 
     if (status === 'SHIPPED') {
       text =
-        `\u{1F69A} *¡TU PEDIDO DE YAMGURUMI VA EN CAMINO!* \u{1F9F6}\n\n` +
+        `${E.TRUCK} *¡TU PEDIDO DE YAMGURUMI VA EN CAMINO!* ${E.YARN}\n\n` +
         `¡Hola, *${customerName}*!\n` +
         `Te notificamos que tu pedido *#${order.id}* ha sido despachado.\n\n` +
-        `\u{1F4E6} *Número de Guía:* *${trackingCode || 'GUIA-PENDIENTE'}*\n` +
-        `\u{1F4CD} *Dirección de Entrega:* ${order.zone}\n\n` +
-        `\u{1F4CB} *Contenido del Paquete:*\n${itemsList}\n\n` +
-        `\u{1F4B0} *Total:* $${order.total.toFixed(2)}\n\n` +
-        `Recibirás tu pedido muy pronto. ¡Muchas gracias por apoyar nuestro taller de amigurumis artesanales! \u2728`;
+        `${E.PACKAGE} *Número de Guía:* *${trackingCode || 'GUIA-PENDIENTE'}*\n` +
+        `${E.PIN} *Dirección de Entrega:* ${order.zone}\n\n` +
+        `${E.CLIPBOARD} *Contenido del Paquete:*\n${itemsList}\n\n` +
+        `${E.MONEY} *Total:* $${order.total.toFixed(2)}\n\n` +
+        `Recibirás tu pedido muy pronto. ¡Muchas gracias por apoyar nuestro taller de amigurumis artesanales! ${E.SPARKLES}`;
     } else if (status === 'CONFIRMED') {
       text =
-        `\u{1F389} *¡PAGO CONFIRMADO EN YAMGURUMI!* \u{1F9F6}\n\n` +
+        `${E.PARTY} *¡PAGO CONFIRMADO EN YAMGURUMI!* ${E.YARN}\n\n` +
         `¡Hola, *${customerName}*!\n` +
         `Hemos verificado tu pago correctamente para el pedido *#${order.id}*.\n\n` +
-        `\u{1F4CB} *Ítems en Confección:*\n${itemsList}\n\n` +
-        `\u{1F4B0} *Total Cancelado:* $${order.total.toFixed(2)}\n` +
-        `\u{1F4CD} *Destino:* ${order.zone}\n\n` +
-        `\u{1F9F5} Nuestro equipo ya está tejiendo y preparando tus muñecos con hilo 100% hipoalergénico. Te enviaremos tu guía en cuanto salga a reparto. ¡Muchas gracias! \u2764\uFE0F`;
+        `${E.CLIPBOARD} *Ítems en Confección:*\n${itemsList}\n\n` +
+        `${E.MONEY} *Total Cancelado:* $${order.total.toFixed(2)}\n` +
+        `${E.PIN} *Destino:* ${order.zone}\n\n` +
+        `${E.THREAD} Nuestro equipo ya está tejiendo y preparando tus muñecos con hilo 100% hipoalergénico. Te enviaremos tu guía en cuanto salga a reparto. ¡Muchas gracias! ${E.HEART}`;
     } else if (status === 'DELIVERED') {
       text =
-        `\u{1F973} *¡PEDIDO ENTREGADO!* \u{1F9F6}\n\n` +
+        `${E.WOO} *¡PEDIDO ENTREGADO!* ${E.YARN}\n\n` +
         `¡Hola, *${customerName}*!\n` +
         `Confirmamos que tu pedido *#${order.id}* de Yamgurumi fue entregado exitosamente.\n\n` +
-        `\u{1F4CB} *Detalle del Pedido:*\n${itemsList}\n\n` +
-        `Esperamos que disfrutes mucho tu nuevo amigurumi. \u2764\uFE0F ¡Gracias por confiar en nuestras creaciones hechas a mano! \u{1F338}`;
+        `${E.CLIPBOARD} *Detalle del Pedido:*\n${itemsList}\n\n` +
+        `Esperamos que disfrutes mucho tu nuevo amigurumi. ${E.HEART} ¡Gracias por confiar en nuestras creaciones hechas a mano! ${E.FLOWER}`;
     } else if (status === 'CANCELLED') {
       text =
-        `\u26A0\uFE0F *NOTIFICACIÓN DE PEDIDO EN YAMGURUMI* \u{1F9F6}\n\n` +
+        `${E.WARNING} *NOTIFICACIÓN DE PEDIDO EN YAMGURUMI* ${E.YARN}\n\n` +
         `Hola, *${customerName}*.\n` +
         `Te informamos que tu pedido *#${order.id}* ha sido registrado como cancelado.\n\n` +
         `Si necesitas asistencia o deseas realizar un nuevo encargo, estamos a tu disposición por este medio.`;
     } else {
       // PENDING
       text =
-        `\u2728 *DETALLES DE TU PEDIDO EN YAMGURUMI* \u{1F9F6}\n\n` +
+        `${E.SPARKLES} *DETALLES DE TU PEDIDO EN YAMGURUMI* ${E.YARN}\n\n` +
         `¡Hola, *${customerName}*!\n` +
         `Te compartimos la información de tu orden *#${order.id}*:\n\n` +
-        `\u{1F4CB} *Productos:*\n${itemsList}\n\n` +
-        `\u{1F4B0} *Total:* $${order.total.toFixed(2)}\n` +
-        `\u{1F4CD} *Dirección de Envío:* ${order.zone}\n\n` +
-        `Quedamos atentos a tus comentarios para coordinar el pago y la entrega. ¡Muchas gracias! \u{1F9F6}`;
+        `${E.CLIPBOARD} *Productos:*\n${itemsList}\n\n` +
+        `${E.MONEY} *Total:* $${order.total.toFixed(2)}\n` +
+        `${E.PIN} *Dirección de Envío:* ${order.zone}\n\n` +
+        `Quedamos atentos a tus comentarios para coordinar el pago y la entrega. ¡Muchas gracias! ${E.YARN}`;
     }
 
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
