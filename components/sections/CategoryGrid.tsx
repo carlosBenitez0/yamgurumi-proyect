@@ -3,8 +3,9 @@ import ScrollReveal from "@/components/ui/ScrollReveal";
 import { StitchDots, YarnThread } from "@/components/ui/CraftBackground";
 import { MdPets, MdAutoAwesome, MdChair, MdFavorite, MdStorefront, MdChevronRight } from "react-icons/md";
 import Link from "next/link";
+import { getPublicCategories } from "@/src/lib/publicProducts";
 
-const categories = [
+const staticCategories = [
   {
     name: "Animales & Mascotas",
     subtitle: "6 modelos",
@@ -47,7 +48,32 @@ const categories = [
   },
 ];
 
-export default function CategoryGrid() {
+export default async function CategoryGrid() {
+  const dbCategories = await getPublicCategories();
+
+  const displayCategories = dbCategories.length > 0
+    ? dbCategories.map((cat, i) => ({
+        name: cat.name,
+        subtitle: `${cat.count} ${cat.count === 1 ? 'modelo' : 'modelos'}`,
+        icon: cat.icon && !cat.icon.startsWith('http') && !cat.icon.startsWith('data:') ? (
+          <span className="text-[18px]">{cat.icon}</span>
+        ) : null,
+        bgClass: ["bg-primary-container", "bg-secondary-container", "bg-surface-variant", "bg-tertiary-container"][i % 4] || "bg-primary-container",
+        labelColor: "text-white",
+        gradientFrom: [
+          "from-primary/80 via-primary/40",
+          "from-secondary/80 via-secondary/40",
+          "from-on-surface-variant/80 via-on-surface-variant/40",
+          "from-tertiary/80 via-tertiary/40",
+        ][i % 4] || "from-primary/80 via-primary/40",
+        imageUrl: cat.imageUrl || "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=800&q=80",
+        slug: cat.name,
+      }))
+    : staticCategories.map(cat => ({
+        ...cat,
+        slug: 'Muñecos',
+      }));
+
   return (
     <SectionWrapper id="categorias">
       <div className="relative">
@@ -78,10 +104,10 @@ export default function CategoryGrid() {
 
         {/* Simple grid: 2 cols mobile, 4 cols desktop */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5">
-          {categories.map((cat, i) => (
+          {displayCategories.map((cat, i) => (
             <ScrollReveal key={cat.name} delay={Math.min(i + 1, 4)}>
               <Link
-                href={`/categoria/Muñecos`}
+                href={`/categoria/${cat.slug}`}
                 className="group relative overflow-hidden rounded-3xl bg-surface-container-lowest shadow-card hover:shadow-elevation transition-all duration-300 active:scale-[0.98] border border-primary-container/20 block aspect-[4/5] sm:aspect-square"
               >
                 <div
@@ -92,9 +118,11 @@ export default function CategoryGrid() {
                   className={`absolute inset-0 bg-gradient-to-t ${cat.gradientFrom} to-transparent flex flex-col justify-end p-4 sm:p-5`}
                 >
                   <div className="flex items-center gap-1.5 mb-1">
-                    <span className="text-[18px] text-white/90 flex-shrink-0">
-                      {cat.icon}
-                    </span>
+                    {cat.icon && (
+                      <span className="text-[18px] text-white/90 flex-shrink-0">
+                        {cat.icon}
+                      </span>
+                    )}
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-white/80">
                       {cat.subtitle}
                     </span>

@@ -5,9 +5,9 @@ import type { CartItem } from "./cart-store";
 export const WHATSAPP_NUMBER = "50377311064";
 
 export const SHIPPING = {
-  zones: ["San Salvador", "Antiguo Cuscatlán", "Santa Tecla", "Zona norte", "Otro destino"],
-  price: "Se coordina en el chat",
-  note: "Se coordina en el chat",
+  zones: ["Todo El Salvador"],
+  price: "Se coordina por chat (Estimada)",
+  note: "Hacemos envíos a todo El Salvador. La tarifa es estimada y puede variar según la zona de entrega.",
 } as const;
 
 export const DELIVERY_ZONES = SHIPPING.zones;
@@ -25,10 +25,48 @@ const E = {
   HEART: String.fromCodePoint(0x2764, 0xFE0F),
 };
 
-function formatItems(items: CartItem[]): string {
-  return items
-    .map((item) => `  • ${item.quantity}× ${item.name} — $${(item.price * item.quantity).toFixed(2)}`)
-    .join("\n");
+const BOLT = String.fromCodePoint(0x26A1);
+
+function formatItemsGrouped(items: CartItem[]): string {
+  const immediateItems = items.filter((item) => item.stock === undefined || item.stock > 0);
+  const madeToOrderItems = items.filter((item) => item.stock !== undefined && item.stock <= 0);
+
+  const formatLine = (item: CartItem) => {
+    const baseTag =
+      item.baseType === "large"
+        ? "Base Grande 🪵 (+$1.50)"
+        : item.baseType === "standard" || item.hasBase
+          ? "Base Normal 🪵 (+$1.00)"
+          : "Sin base";
+    return `  • ${item.quantity}× ${item.name} (${baseTag}) — $${(
+      item.price * item.quantity
+    ).toFixed(2)}`;
+  };
+
+  const output: string[] = [];
+
+  if (immediateItems.length > 0) {
+    output.push(`${BOLT} *Piezas en Stock (Entrega Inmediata):*`);
+    immediateItems.forEach((i) => output.push(formatLine(i)));
+  }
+
+  if (madeToOrderItems.length > 0) {
+    if (output.length > 0) output.push("");
+    output.push(`${E.YARN} *Piezas a Confeccionar Bajo Encargo:*`);
+    madeToOrderItems.forEach((i) => {
+      const line = formatLine(i);
+      const cDays = i.craftingDays ? ` [${i.craftingDays}]` : "";
+      output.push(`${line}${cDays}`);
+    });
+  }
+
+  // Fallback si por alguna razón ninguna categoría capturó ítems
+  if (output.length === 0) {
+    output.push(`${E.CLIPBOARD} *Productos Seleccionados:*`);
+    items.forEach((i) => output.push(formatLine(i)));
+  }
+
+  return output.join("\n");
 }
 
 function calculateSubtotal(items: CartItem[]): number {
@@ -47,24 +85,41 @@ export function buildCartMessageText(
   details: DeliveryDetails,
   discountCode?: string | null,
   discountPercent: number = 0,
+  customTemplate?: string,
+  couponId?: string | null
 ): string {
   const subtotal = calculateSubtotal(items);
   const discountAmount = (subtotal * discountPercent) / 100;
   const total = subtotal - discountAmount;
+  const itemsText = formatItemsGrouped(items);
+  const discountText = discountCode && discountPercent > 0 ? `${discountCode} (-$${discountAmount.toFixed(2)})` : '0.00';
+
+  if (customTemplate) {
+    return customTemplate
+      .replaceAll('{productos}', itemsText)
+      .replaceAll('{subtotal}', subtotal.toFixed(2))
+      .replaceAll('{descuento}', discountAmount.toFixed(2))
+      .replaceAll('{envio}', SHIPPING.price)
+      .replaceAll('{total}', total.toFixed(2))
+      .replaceAll('{zona}', details.zone)
+      .replaceAll('{notas}', details.note.trim() || 'Sin notas adicionales')
+      .replaceAll('{nombre}', details.name.trim())
+      .replaceAll('{telefono}', details.phone.trim());
+  }
 
   const lines = [
     `${E.SPARKLES} *NUEVO PEDIDO DESDE LA WEB - YAMGURUMI* ${E.YARN}`,
     "",
-    `¡Hola! Quisiera realizar la compra de los siguientes amigurumis artesanales:`,
+    `¡Hola! Quisiera realizar el pedido de los siguientes amigurumis artesanales:`,
     "",
-    `${E.CLIPBOARD} *Productos Seleccionados:*`,
-    formatItems(items),
+    itemsText,
     "",
     `Subtotal: $${subtotal.toFixed(2)}`,
   ];
 
   if (discountCode && discountPercent > 0) {
-    lines.push(`Descuento (${discountCode}): -$${discountAmount.toFixed(2)} (-${discountPercent}%)`);
+    const couponRefInfo = couponId ? ` | ID: ${couponId}` : '';
+    lines.push(`🎟️ *Cupón Aplicado (${discountCode}${couponRefInfo}):* -$${discountAmount.toFixed(2)} (-${discountPercent}%)`);
   }
 
   lines.push(
@@ -90,7 +145,9 @@ export function buildWhatsAppLink(
   details: DeliveryDetails,
   discountCode?: string | null,
   discountPercent: number = 0,
+  customTemplate?: string,
+  couponId?: string | null
 ): string {
-  const text = buildCartMessageText(items, details, discountCode, discountPercent);
+  const text = buildCartMessageText(items, details, discountCode, discountPercent, customTemplate, couponId);
   return `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(text)}`;
 }

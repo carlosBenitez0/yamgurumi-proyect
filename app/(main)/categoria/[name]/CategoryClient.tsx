@@ -6,6 +6,8 @@ import ScrollReveal from "@/components/ui/ScrollReveal";
 import { MdStar, MdStarBorder, MdFavorite, MdFavoriteBorder, MdAddShoppingCart, MdCheck } from "react-icons/md";
 import type { Product } from "@/data/products";
 import { useCartStore } from "@/lib/cart-store";
+import { useFavoritesStore } from "@/src/store/useFavoritesStore";
+import { useAuth } from "@/src/lib/auth/auth-context";
 
 interface Props {
   category: string;
@@ -43,10 +45,12 @@ const tagColors: Record<string, string> = {
 };
 
 export default function CategoryClient({ category, icon, products }: Props) {
-  const [favorites, setFavorites] = useState<Record<string, boolean>>({});
   const [addedId, setAddedId] = useState<string | null>(null);
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const addItem = useCartStore((s) => s.addItem);
+  const storeIsFav = useFavoritesStore((s) => s.favoritesMap);
+  const storeToggleFav = useFavoritesStore((s) => s.toggleFavorite);
+  const { isAuthenticated, redirectToLogin } = useAuth();
 
   useEffect(
     () => () => {
@@ -56,7 +60,11 @@ export default function CategoryClient({ category, icon, products }: Props) {
   );
 
   const toggleFav = (id: string) => {
-    setFavorites((prev) => ({ ...prev, [id]: !prev[id] }));
+    if (!isAuthenticated) {
+      redirectToLogin();
+      return;
+    }
+    storeToggleFav(id);
   };
 
   const handleAdd = (product: Product) => {
@@ -125,13 +133,13 @@ export default function CategoryClient({ category, icon, products }: Props) {
                           toggleFav(product.id);
                         }}
                         className={`absolute top-2 right-2 w-7 h-7 sm:top-3 sm:right-3 sm:w-9 sm:h-9 flex items-center justify-center rounded-full backdrop-blur-md transition-all active:scale-90 shadow-sm ${
-                          favorites[product.id]
+                          storeIsFav[product.id]
                             ? "bg-tertiary text-on-tertiary"
                             : "bg-surface-container-lowest/80 text-on-surface-variant hover:bg-tertiary/20"
                         }`}
                         aria-label="Agregar a favoritos"
                       >
-                        {favorites[product.id] ? (
+                        {storeIsFav[product.id] ? (
                           <MdFavorite className="text-lg sm:text-[20px]" />
                         ) : (
                           <MdFavoriteBorder className="text-lg sm:text-[20px]" />

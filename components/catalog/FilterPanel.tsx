@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { MdCheck, MdFilterListOff, MdAutoAwesome } from "react-icons/md";
-import { categories, sizeOptions } from "@/data/products";
+import { categories as staticCategories, sizeOptions } from "@/data/products";
 
 export interface FilterOption {
   value: string;
@@ -28,6 +28,7 @@ interface FilterPanelProps {
   hasActiveFilters: boolean;
   onClear: () => void;
   namePrefix?: string;
+  categories?: { name: string; count: number; icon: string }[];
 }
 
 function Section({
@@ -80,7 +81,13 @@ function CategoryRow({
         onChange={onChange}
         className="peer sr-only"
       />
-      {icon && <span className="text-base flex-shrink-0" aria-hidden="true">{icon}</span>}
+      {icon && (
+        icon.startsWith('http') || icon.startsWith('data:') ? (
+          <img src={icon} alt="" className="w-5 h-5 object-cover rounded-[4px] flex-shrink-0" aria-hidden="true" />
+        ) : (
+          <span className="text-base flex-shrink-0" aria-hidden="true">{icon}</span>
+        )
+      )}
       <span
         className={`flex-1 text-xs sm:text-sm font-body min-w-0 truncate font-bold transition-colors ${
           checked ? "text-white" : "text-on-surface group-hover:text-secondary"
@@ -166,7 +173,10 @@ export default function FilterPanel({
   hasActiveFilters,
   onClear,
   namePrefix = "catalog",
+  categories,
 }: FilterPanelProps) {
+  const displayCategories = categories || staticCategories;
+
   const toggleSize = (value: string) => {
     onSizesChange(
       activeSizes.includes(value)
@@ -212,7 +222,7 @@ export default function FilterPanel({
             onChange={() => onCategoryChange("")}
             name={`${namePrefix}-category`}
           />
-          {categories.map((cat) => (
+          {displayCategories.map((cat) => (
             <CategoryRow
               key={cat.name}
               label={cat.name}

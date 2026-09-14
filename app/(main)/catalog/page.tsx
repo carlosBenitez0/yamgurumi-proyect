@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import CatalogClient from "./CatalogClient";
-import { getPublicProducts } from "@/src/lib/publicProducts";
+import { getPublicProducts, getPublicCategories } from "@/src/lib/publicProducts";
 import { YarnBall } from "@/components/ui/CraftBackground";
 
 export const metadata: Metadata = {
@@ -33,11 +33,14 @@ function CatalogFallback() {
 }
 
 export default async function CatalogPage() {
-  const products = await getPublicProducts();
+  const [products, categories] = await Promise.all([
+    getPublicProducts(),
+    getPublicCategories(),
+  ]);
 
   return (
     <Suspense fallback={<CatalogFallback />}>
-      <CatalogClient initialProducts={products} />
+      <CatalogClient initialProducts={products} initialCategories={categories} />
     </Suspense>
   );
 }

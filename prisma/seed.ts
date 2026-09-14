@@ -30,7 +30,7 @@ async function main() {
     {
       email: 'cb2724136@gmail.com',
       name: 'Carlos Benítez',
-      role: 'ADMIN' as const,
+      role: 'CUSTOMER' as const,
       passwordHash,
       emailVerified: new Date(),
     },
@@ -93,15 +93,23 @@ async function main() {
   ];
 
   for (const d of discountCodes) {
-    await prisma.discountCode.upsert({
-      where: { code: d.code },
-      update: { percent: d.percent, usageLimit: d.usageLimit },
-      create: {
-        code: d.code,
-        percent: d.percent,
-        usageLimit: d.usageLimit,
-      },
+    const existing = await prisma.discountCode.findFirst({
+      where: { code: d.code, userId: null, parentCouponId: null },
     });
+    if (existing) {
+      await prisma.discountCode.update({
+        where: { id: existing.id },
+        data: { percent: d.percent, usageLimit: d.usageLimit },
+      });
+    } else {
+      await prisma.discountCode.create({
+        data: {
+          code: d.code,
+          percent: d.percent,
+          usageLimit: d.usageLimit,
+        },
+      });
+    }
     console.log(`🎟️ Cupón de descuento disponible: ${d.code} (${d.percent}% OFF)`);
   }
 
@@ -131,12 +139,38 @@ async function main() {
   }
 
   // 4. Productos
+  const sampleExtraImages = [
+    'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=800&q=80',
+    'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=800&q=80',
+    'https://images.unsplash.com/photo-1558060370-d644479be6e7?w=800&q=80',
+    'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80',
+    'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800&q=80',
+    'https://images.unsplash.com/photo-1563170351-be82bc888aa4?w=800&q=80',
+    'https://images.unsplash.com/photo-1686151573986-03b5a79f22a5?w=800&q=80',
+    'https://images.unsplash.com/photo-1584992236310-6edddc08acff?w=800&q=80',
+    'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&q=80',
+    'https://images.unsplash.com/photo-1535572290543-960a8046f5af?w=800&q=80',
+  ];
+
   const createdProducts = [];
-  for (const p of mockProducts) {
+  for (let idx = 0; idx < mockProducts.length; idx++) {
+    const p = mockProducts[idx];
     const categoryId = categoryMap.get(p.category);
     if (!categoryId) continue;
 
     const prodSlug = p.slug || slugify(p.name);
+    const prodImages = Array.from(
+      new Set([
+        p.imageUrl,
+        sampleExtraImages[idx % sampleExtraImages.length],
+        sampleExtraImages[(idx + 1) % sampleExtraImages.length],
+        sampleExtraImages[(idx + 2) % sampleExtraImages.length],
+        sampleExtraImages[(idx + 3) % sampleExtraImages.length],
+        sampleExtraImages[(idx + 4) % sampleExtraImages.length],
+        sampleExtraImages[(idx + 5) % sampleExtraImages.length],
+      ])
+    );
+
     const prod = await prisma.product.upsert({
       where: { slug: prodSlug },
       update: {
@@ -147,7 +181,7 @@ async function main() {
         description: p.description,
         materials: p.materials,
         tags: p.tags,
-        imageUrls: [p.imageUrl],
+        imageUrls: prodImages,
         rating: p.rating,
         reviewsCount: p.reviews,
       },
@@ -162,7 +196,7 @@ async function main() {
         description: p.description,
         materials: p.materials,
         tags: p.tags,
-        imageUrls: [p.imageUrl],
+        imageUrls: prodImages,
         isFeatured: Math.random() > 0.6,
         isActive: true,
         rating: p.rating,
@@ -171,7 +205,7 @@ async function main() {
     });
     createdProducts.push(prod);
   }
-  console.log(`🧸 Total de productos sembrados en PostgreSQL: ${createdProducts.length}`);
+  console.log(`🧸 Total de productos sembrados en PostgreSQL con múltiples imágenes: ${createdProducts.length}`);
 
   // 5. Ajustes de la tienda (StoreSetting)
   const defaultSettings = [

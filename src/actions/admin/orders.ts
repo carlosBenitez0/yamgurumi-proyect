@@ -71,13 +71,38 @@ export async function updateOrderStatusAction(data: {
 }) {
   const admin = await requireAdmin();
 
-  const updated = await prisma.order.update({
-    where: { id: data.orderId },
-    data: {
-      status: data.status,
-      ...(data.trackingNumber !== undefined && { trackingNumber: data.trackingNumber }),
-      ...(data.adminNotes !== undefined && { adminNotes: data.adminNotes }),
-    },
+  const updated = await prisma.$transaction(async (tx) => {
+    const current = await tx.order.findUnique({
+      where: { id: data.orderId },
+      include: { items: true },
+    });
+
+    if (!current) {
+      throw new Error('Pedido no encontrado');
+    }
+
+    // Si el pedido pasa a CANCELLED desde un estado activo, devolver el
+    // stock de cada pieza al inventario.
+    const isCancelling =
+      data.status === OrderStatus.CANCELLED && current.status !== OrderStatus.CANCELLED;
+
+    if (isCancelling) {
+      for (const item of current.items) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { increment: item.quantity } },
+        });
+      }
+    }
+
+    return tx.order.update({
+      where: { id: data.orderId },
+      data: {
+        status: data.status,
+        ...(data.trackingNumber !== undefined && { trackingNumber: data.trackingNumber }),
+        ...(data.adminNotes !== undefined && { adminNotes: data.adminNotes }),
+      },
+    });
   });
 
   // Log de auditoría
@@ -96,8 +121,18 @@ export async function updateOrderStatusAction(data: {
 
   revalidatePath('/admin/pedidos');
   revalidatePath('/admin');
+  revalidatePath('/admin/productos');
+  revalidatePath('/catalog');
+  revalidatePath('/');
 
-  return { success: true, order: updated };
+  const formattedOrder = {
+    ...updated,
+    subtotal: Number(updated.subtotal),
+    discount: Number(updated.discount),
+    total: Number(updated.total),
+  };
+
+  return { success: true, order: formattedOrder };
 }
 
 export async function seedSampleOrdersIfEmptyAction() {

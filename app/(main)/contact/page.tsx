@@ -3,7 +3,9 @@ import { Suspense, type ReactNode } from "react";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import { StitchDots } from "@/components/ui/CraftBackground";
-import { DELIVERY_ZONES, SHIPPING } from "@/lib/cart-whatsapp";
+import { SHIPPING } from "@/lib/cart-whatsapp";
+import { buildWhatsAppUrl } from "@/src/lib/whatsappTemplates";
+import { getWhatsAppTemplatesMap } from "@/src/lib/whatsappTemplatesServer";
 import ContactClient from "./ContactClient";
 
 export const metadata: Metadata = {
@@ -11,10 +13,6 @@ export const metadata: Metadata = {
   description:
     "Escribile al taller de Yamgurumi: tu mensaje llega directo al chat de WhatsApp. Encargos personalizados, preguntas por piezas y entregas en El Salvador.",
 };
-
-const WHATSAPP_URL = `https://api.whatsapp.com/send?phone=50377311064&text=${encodeURIComponent(
-  `¡Hola Yamgurumi! ${String.fromCodePoint(0x2728)} Quiero consultar sobre un amigurumi personalizado ${String.fromCodePoint(0x1F9F6)}.`,
-)}`;
 
 /* ── Tarjeta del panel derecho ──────────────────────────── */
 
@@ -41,25 +39,15 @@ function RailCard({ title, children, delay = 0 }: RailCardProps) {
 
 /* ── Página ────────────────────────────────────────────── */
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const whatsappTemplates = await getWhatsAppTemplatesMap();
+  const directText = whatsappTemplates.wa_tpl_contact_direct || '¡Hola Yamgurumi! 🧶 Quisiera solicitar información sobre sus amigurumis hechos a mano y cómo realizar un pedido.';
+  const directUrl = buildWhatsAppUrl('50377311064', directText);
+
   return (
     <>
       {/* Marcador auditable del contrato: sobrevive el build (los comentarios JSX no). */}
       <div data-yarn-seed="da05fb4f" hidden aria-hidden="true" />
-      {/* direction:el-hilo-que-se-estira · seed:da05fb4f · world:Yarn Garden (pinned)
-          THESIS: contactar al taller es tejer un mensaje: tres puntos (nombre, motivo,
-          mensaje) y el hilo lo estira directo al chat de WhatsApp. Rechaza la tarjeta de
-          contacto genérica que muere en un formulario sin respuesta.
-          OWN-WORLD: la vuelta del mensaje como un hilo con tres puntos que se encienden
-          al completarse, sobre la paleta del taller; badge-pill, stitch-tag y el glifo de
-          WhatsApp como única marca exterior.
-          STORY: quien visita entiende que su mensaje llega a una persona real, ve su
-          mensaje armado antes de enviarlo y lo manda sin salir del taller.
-          FIRST VIEWPORT: cabecera breve, la vuelta del mensaje a la izquierda, el chat
-          directo y las zonas de entrega a la derecha.
-          FORM: candidate 6 de la lista propia, asignado por el seed (key da05fb4f).
-          FINISH: unreviewed and undocumented is unfinished; this build ends with the
-          finish review, the verdict, and DESIGN.md */}
       <main className="min-h-screen pb-16 sm:pb-24">
         <div className="section-container pt-28 sm:pt-32">
           <div className="mx-auto max-w-7xl">
@@ -85,7 +73,7 @@ export default function ContactPage() {
             {/* ── La vuelta del mensaje + el resto del taller ── */}
             <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px] gap-6 lg:gap-10 mt-8 sm:mt-10 items-start">
               <Suspense fallback={null}>
-                <ContactClient />
+                <ContactClient whatsappTemplates={whatsappTemplates} />
               </Suspense>
 
               <aside
@@ -98,9 +86,8 @@ export default function ContactPage() {
                     No hay bots ni filas: escribís y te responde la persona que
                     teje. El taller responde casi siempre el mismo día.
                   </p>
-                  {/* POR DEFINIR: tiempo real de respuesta */}
                   <a
-                    href={WHATSAPP_URL}
+                    href={directUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-4 inline-flex items-center justify-center gap-2.5 w-full bg-whatsapp text-white px-6 py-3.5 rounded-full font-body text-sm font-bold shadow-button hover:bg-whatsapp-hover transition-all active:scale-[0.97] tactile-press focus-ring"
@@ -115,16 +102,11 @@ export default function ContactPage() {
 
                 {/* Dónde se entrega */}
                 <RailCard title="Dónde se entrega" delay={120}>
-                  <p>La entrega se coordina en el chat.</p>
+                  <p>Hacemos envíos a todo El Salvador.</p>
                   <ul className="mt-3 flex flex-wrap gap-2">
-                    {DELIVERY_ZONES.map((zone) => (
-                      <li
-                        key={zone}
-                        className="rounded-full bg-primary-fixed-dim/25 px-3 py-1 text-label-md font-label font-bold text-on-surface-variant"
-                      >
-                        {zone}
-                      </li>
-                    ))}
+                    <li className="rounded-full bg-primary-fixed-dim/25 px-3 py-1 text-label-md font-label font-bold text-on-surface-variant">
+                      Todo El Salvador 🇸🇻
+                    </li>
                   </ul>
                   <p className="mt-3 text-body-sm text-on-surface-variant/80">
                     {SHIPPING.note}
@@ -204,8 +186,8 @@ export default function ContactPage() {
                       ¿En qué zonas se entrega?
                     </dt>
                     <dd className="mt-2 font-body text-body-sm leading-relaxed text-on-surface-variant">
-                      {DELIVERY_ZONES.join(", ")} y alrededores. Si tu zona no
-                      está en la lista, escribinos igual: se coordina en el chat.
+                      Hacemos envíos a todo El Salvador. La entrega se
+                      coordina directamente por WhatsApp según tu ubicación.
                     </dd>
                   </div>
                 </ScrollReveal>

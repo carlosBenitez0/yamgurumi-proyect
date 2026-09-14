@@ -12,6 +12,11 @@ import {
   MdPhotoLibrary,
   MdCheck,
   MdClose,
+  MdStar,
+  MdDelete,
+  MdAdd,
+  MdChevronLeft,
+  MdChevronRight,
 } from 'react-icons/md';
 import { createProductAction } from '@/src/actions/admin/products';
 
@@ -31,6 +36,13 @@ const DEFAULT_MATERIALS = [
   'Fieltro y aplicaciones',
   'Sonajero o cascabel interno',
   'Lana chenille / peluche',
+];
+
+const DEFAULT_CRAFTING_DAYS_PRESETS = [
+  '3-5 días hábiles',
+  '5-10 días hábiles',
+  '7-12 días hábiles',
+  '10-15 días hábiles',
 ];
 
 // Helper para comprimir y convertir imágenes locales a formato JPEG ultraliviano (~80KB - 200KB)
@@ -121,10 +133,10 @@ export default function AdminNewProductClient({
   const [errorMsg, setErrorMsg] = useState('');
   const [isCompressing, setIsCompressing] = useState(false);
 
-  // Estados de Imagen
+  // Estados de Imagen Multi-Imagen
   const [imageTab, setImageTab] = useState<'local' | 'url'>('local');
-  const [localImageName, setLocalImageName] = useState('');
-  const [imageSizeKb, setImageSizeKb] = useState<number | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+  const [urlInput, setUrlInput] = useState('');
 
   // Estados de Tamaño
   const [sizeSelect, setSizeSelect] = useState('Mediano');
@@ -133,17 +145,59 @@ export default function AdminNewProductClient({
   // Estados de Materiales Predeterminados
   const [presetMaterials, setPresetMaterials] = useState<string[]>(DEFAULT_MATERIALS);
 
+  // Estados de Días de Elaboración Predeterminados
+  const [presetCraftingDays, setPresetCraftingDays] = useState<string[]>(DEFAULT_CRAFTING_DAYS_PRESETS);
+  const [newCraftingDayInput, setNewCraftingDayInput] = useState('');
+  const [showAddCraftingDayForm, setShowAddCraftingDayForm] = useState(false);
+  const [craftingDayToDelete, setCraftingDayToDelete] = useState<string | null>(null);
+
   // Cargar lista personalizada de localStorage solo tras el montaje en el cliente para evitar hidratación fallida (Hydration Mismatch)
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('yamgurumi_preset_materials');
-      if (stored) {
+      const storedMaterials = localStorage.getItem('yamgurumi_preset_materials');
+      if (storedMaterials) {
         try {
-          setPresetMaterials(JSON.parse(stored));
+          setPresetMaterials(JSON.parse(storedMaterials));
+        } catch (e) {}
+      }
+
+      const storedCraftingDays = localStorage.getItem('yamgurumi_preset_crafting_days');
+      if (storedCraftingDays) {
+        try {
+          const parsed = JSON.parse(storedCraftingDays);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setPresetCraftingDays(parsed);
+          }
         } catch (e) {}
       }
     }
   }, []);
+
+  const saveCraftingDaysPresetsToStorage = (list: string[]) => {
+    setPresetCraftingDays(list);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('yamgurumi_preset_crafting_days', JSON.stringify(list));
+    }
+  };
+
+  const handleAddCraftingDayPreset = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const trimmed = newCraftingDayInput.trim();
+    if (!trimmed) return;
+    if (!presetCraftingDays.some((m) => m.toLowerCase() === trimmed.toLowerCase())) {
+      const updated = [...presetCraftingDays, trimmed];
+      saveCraftingDaysPresetsToStorage(updated);
+    }
+    setFormData((prev) => ({ ...prev, craftingDays: trimmed }));
+    setNewCraftingDayInput('');
+    setShowAddCraftingDayForm(false);
+  };
+
+  const confirmRemoveCraftingDayPreset = (presetToRemove: string) => {
+    const updated = presetCraftingDays.filter((m) => m.toLowerCase() !== presetToRemove.toLowerCase());
+    saveCraftingDaysPresetsToStorage(updated);
+    setCraftingDayToDelete(null);
+  };
 
   const [newPresetInput, setNewPresetInput] = useState('');
   const [showAddPresetForm, setShowAddPresetForm] = useState(false);
@@ -155,9 +209,9 @@ export default function AdminNewProductClient({
     price: '',
     salePrice: '',
     stock: '10',
+    craftingDays: '5-10 días hábiles',
     description: '',
     materials: 'Hilo de algodón 100% hipoalergénico, ojos de seguridad, vellón siliconado',
-    imageUrl: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=800&q=80',
     isFeatured: false,
     isActive: true,
   });
@@ -192,28 +246,70 @@ export default function AdminNewProductClient({
     setMaterialToDelete(null);
   };
 
-  // Manejo con compresión de carga de archivos locales
+  // Manejo de imágenes múltiples
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length === 0) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMsg('La foto seleccionada supera el límite de 5MB. Por favor elige una imagen de hasta 5MB.');
+    const oversized = selectedFiles.find((f) => f.size > 5 * 1024 * 1024);
+    if (oversized) {
+      setErrorMsg(`La foto "${oversized.name}" supera el límite de 5MB.`);
       return;
     }
 
     try {
       setIsCompressing(true);
       setErrorMsg('');
-      const { dataUrl, sizeKb } = await compressImageFile(file, 900, 0.78);
-      setFormData((prev) => ({ ...prev, imageUrl: dataUrl }));
-      setLocalImageName(file.name);
-      setImageSizeKb(sizeKb);
+      const compressed: string[] = [];
+      for (const file of selectedFiles) {
+        const { dataUrl } = await compressImageFile(file, 900, 0.78);
+        compressed.push(dataUrl);
+      }
+      setImages((prev) => [...prev, ...compressed]);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err) {
-      setErrorMsg('No se pudo procesar la foto elegida. Por favor intenta con otra imagen en formato PNG o JPG.');
+      setErrorMsg('No se pudieron procesar las imágenes seleccionadas.');
     } finally {
       setIsCompressing(false);
     }
+  };
+
+  const handleAddUrlImage = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const trimmed = urlInput.trim();
+    if (!trimmed) return;
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+      setErrorMsg('La URL de la imagen debe comenzar con https:// o http://');
+      return;
+    }
+    setImages((prev) => [...prev, trimmed]);
+    setUrlInput('');
+    setErrorMsg('');
+  };
+
+  const setCoverImage = (index: number) => {
+    if (index === 0) return;
+    setImages((prev) => {
+      const copy = [...prev];
+      const [selected] = copy.splice(index, 1);
+      return [selected, ...copy];
+    });
+  };
+
+  const removeImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const moveImage = (index: number, direction: 'left' | 'right') => {
+    const targetIndex = direction === 'left' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= images.length) return;
+    setImages((prev) => {
+      const copy = [...prev];
+      const temp = copy[index];
+      copy[index] = copy[targetIndex];
+      copy[targetIndex] = temp;
+      return copy;
+    });
   };
 
   const toggleMaterial = (material: string) => {
@@ -270,9 +366,15 @@ export default function AdminNewProductClient({
       return;
     }
 
-    if (!formData.imageUrl) {
-      setErrorMsg('Por favor carga una fotografía del amigurumi o ingresa una URL válida.');
+    if (images.length === 0) {
+      setErrorMsg('Por favor agrega al menos una fotografía para el producto.');
       return;
+    }
+
+    const currentCraftingDays = (formData.craftingDays || '5-10 días hábiles').trim();
+    if (!presetCraftingDays.some((m) => m.toLowerCase() === currentCraftingDays.toLowerCase())) {
+      const updated = [...presetCraftingDays, currentCraftingDays];
+      saveCraftingDaysPresetsToStorage(updated);
     }
 
     startTransition(async () => {
@@ -284,9 +386,10 @@ export default function AdminNewProductClient({
           salePrice: formData.salePrice ? Number(formData.salePrice) : null,
           stock: Number(formData.stock),
           size: finalSize,
+          craftingDays: formData.craftingDays || '5-10 días hábiles',
           description: formData.description || 'Amigurumi tejido a mano en crochet.',
           materials: formData.materials || 'Hilo de algodón 100% hipoalergénico',
-          imageUrls: [formData.imageUrl],
+          imageUrls: images,
           tags: ['Artesanal', 'Kawaii'],
           isFeatured: formData.isFeatured,
           isActive: formData.isActive,
@@ -335,19 +438,31 @@ export default function AdminNewProductClient({
       </div>
 
       {errorMsg && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-[8px] text-rose-800 text-xs font-semibold flex items-center justify-between animate-in slide-in-from-top-1 duration-150">
-          <span className="flex items-center gap-2">
-            <span>⚠️</span>
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-[8px] text-rose-800 text-xs font-semibold flex items-center justify-between gap-3 animate-in slide-in-from-top-1 duration-150">
+          <span className="flex items-center gap-2 min-w-0">
+            <span className="shrink-0">⚠️</span>
             <span>{errorMsg}</span>
           </span>
-          <button
-            type="button"
-            onClick={() => setErrorMsg('')}
-            className="text-rose-600 hover:text-rose-800 p-1 rounded hover:bg-rose-100 transition-colors"
-            title="Cerrar aviso"
-          >
-            <MdClose className="text-base" />
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {errorMsg.includes('sesión') && (
+              <a
+                href="/auth/login"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-[6px] text-xs font-bold transition-colors shadow-2xs whitespace-nowrap"
+              >
+                Iniciar Sesión Aquí
+              </a>
+            )}
+            <button
+              type="button"
+              onClick={() => setErrorMsg('')}
+              className="text-rose-600 hover:text-rose-800 p-1 rounded hover:bg-rose-100 transition-colors"
+              title="Cerrar aviso"
+            >
+              <MdClose className="text-base" />
+            </button>
+          </div>
         </div>
       )}
 
@@ -564,12 +679,20 @@ export default function AdminNewProductClient({
             </div>
           </div>
 
-          {/* GALERÍA / IMAGEN DEL PRODUCTO (CARGA LOCAL Y URL) */}
+          {/* GALERÍA / IMÁGENES DEL PRODUCTO (CARGA MULTIPLE LOCAL Y URL) */}
           <div className="bg-white border border-stone-200/90 rounded-[12px] p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <h3 className="font-headline font-bold text-sm text-stone-800">
-                Fotografía del Producto *
-              </h3>
+              <div>
+                <h3 className="font-headline font-bold text-sm text-stone-800 flex items-center gap-2">
+                  <span>Fotografías del Producto *</span>
+                  <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold">
+                    {images.length} {images.length === 1 ? 'imagen' : 'imágenes'}
+                  </span>
+                </h3>
+                <p className="text-[11px] text-stone-400 mt-0.5">
+                  Puedes subir varias fotos del amigurumi. La primera foto será la portada principal del catálogo.
+                </p>
+              </div>
 
               <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-[6px]">
                 <button
@@ -582,7 +705,7 @@ export default function AdminNewProductClient({
                   }`}
                 >
                   <MdPhotoLibrary className="text-sm" />
-                  <span>Cargar desde Equipo</span>
+                  <span>Equipo</span>
                 </button>
 
                 <button
@@ -595,7 +718,7 @@ export default function AdminNewProductClient({
                   }`}
                 >
                   <MdLink className="text-sm" />
-                  <span>Enlace URL</span>
+                  <span>URL</span>
                 </button>
               </div>
             </div>
@@ -606,6 +729,7 @@ export default function AdminNewProductClient({
                   type="file"
                   ref={fileInputRef}
                   accept="image/png, image/jpeg, image/webp, image/gif"
+                  multiple
                   onChange={handleFileChange}
                   className="hidden"
                 />
@@ -619,18 +743,12 @@ export default function AdminNewProductClient({
                   </div>
                   <div>
                     <p className="font-bold text-xs text-stone-800">
-                      {isCompressing ? 'Optimizando imagen...' : 'Haz clic para seleccionar una foto desde tu computadora'}
+                      {isCompressing ? 'Optimizando imágenes...' : 'Haz clic para seleccionar una o varias fotos desde tu computadora'}
                     </p>
                     <p className="text-[11px] text-stone-400 mt-0.5">
-                      Soporta fotos PNG, JPG o WEBP (Hasta 5MB por foto, optimizadas automáticamente)
+                      Puedes seleccionar varios archivos a la vez (PNG, JPG, WEBP de hasta 5MB cada uno)
                     </p>
                   </div>
-                  {localImageName && (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-900 rounded-[6px] text-xs font-semibold mt-2">
-                      <MdCheck className="text-emerald-600 text-base" />
-                      <span>{localImageName}</span>
-                    </div>
-                  )}
                 </div>
               </div>
             )}
@@ -638,47 +756,116 @@ export default function AdminNewProductClient({
             {imageTab === 'url' && (
               <div className="space-y-2">
                 <label className="block text-xs font-semibold text-stone-700">
-                  Enlace directo de la imagen (HTTPS)
+                  Agregar foto por enlace URL (HTTPS)
                 </label>
-                <input
-                  type="url"
-                  value={formData.imageUrl.startsWith('data:') ? '' : formData.imageUrl}
-                  onChange={(e) => {
-                    setFormData({ ...formData, imageUrl: e.target.value });
-                    setLocalImageName('');
-                  }}
-                  placeholder="https://ejemplo.com/fotos/amigurumi-oso.jpg"
-                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700 font-mono"
-                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="url"
+                    value={urlInput}
+                    onChange={(e) => setUrlInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddUrlImage();
+                      }
+                    }}
+                    placeholder="https://ejemplo.com/fotos/amigurumi-oso.jpg"
+                    className="flex-1 px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700 font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddUrlImage}
+                    className="px-3.5 py-2 bg-[#72594e] hover:bg-[#60493f] text-white font-semibold text-xs rounded-[6px] transition-colors flex items-center gap-1 shrink-0"
+                  >
+                    <MdAdd className="text-base" />
+                    <span>Añadir</span>
+                  </button>
+                </div>
               </div>
             )}
 
-            {formData.imageUrl && (
-              <div className="pt-2 flex items-center gap-4">
-                <div className="w-20 h-20 rounded-[8px] overflow-hidden border border-stone-200 bg-stone-100 shrink-0 relative shadow-2xs">
-                  <img
-                    src={formData.imageUrl}
-                    alt="Vista previa"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <span className="text-xs font-semibold text-stone-800 block">Vista previa de la foto</span>
-                  <span className="text-[11px] text-stone-500 block font-medium">
-                    {formData.imageUrl.startsWith('data:')
-                      ? `📷 Foto optimizada a formato JPEG (${imageSizeKb ? `${imageSizeKb} KB` : 'ultraliviana'})`
-                      : '🌐 Imagen vinculada por URL'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFormData({ ...formData, imageUrl: '' });
-                      setLocalImageName('');
-                    }}
-                    className="text-[11px] font-semibold text-rose-600 hover:underline"
-                  >
-                    Quitar foto
-                  </button>
+            {/* LISTADO Y GALERÍA DE IMÁGENES CARGADAS */}
+            {images.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <span className="text-xs font-bold text-stone-700 block">
+                  Galería de Fotos ({images.length})
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {images.map((imgUrl, idx) => {
+                    const isCover = idx === 0;
+                    return (
+                      <div
+                        key={idx}
+                        className={`relative rounded-[8px] overflow-hidden border bg-stone-100 group shadow-xs transition-all ${
+                          isCover ? 'border-amber-600 ring-2 ring-amber-500/40' : 'border-stone-200'
+                        }`}
+                      >
+                        <div className="aspect-square relative w-full overflow-hidden bg-stone-50">
+                          <img
+                            src={imgUrl}
+                            alt={`Foto ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+
+                          {/* Overlay de acciones */}
+                          <div className="absolute inset-0 bg-stone-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
+                            <div className="flex items-center justify-between">
+                              {!isCover && (
+                                <button
+                                  type="button"
+                                  onClick={() => setCoverImage(idx)}
+                                  className="px-2 py-0.5 bg-amber-500 hover:bg-amber-600 text-white rounded text-[10px] font-bold shadow-xs flex items-center gap-0.5"
+                                  title="Establecer como foto de portada principal"
+                                >
+                                  <MdStar className="text-xs" />
+                                  <span>Portada</span>
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => removeImage(idx)}
+                                className="ml-auto p-1 bg-rose-600 hover:bg-rose-700 text-white rounded transition-colors"
+                                title="Eliminar imagen"
+                              >
+                                <MdDelete className="text-sm" />
+                              </button>
+                            </div>
+
+                            <div className="flex items-center justify-between text-white">
+                              {idx > 0 ? (
+                                <button
+                                  type="button"
+                                  onClick={() => moveImage(idx, 'left')}
+                                  className="p-1 bg-white/20 hover:bg-white/40 rounded transition-colors"
+                                  title="Mover foto a la izquierda"
+                                >
+                                  <MdChevronLeft className="text-base" />
+                                </button>
+                              ) : <span />}
+
+                              {idx < images.length - 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => moveImage(idx, 'right')}
+                                  className="p-1 bg-white/20 hover:bg-white/40 rounded transition-colors"
+                                  title="Mover foto a la derecha"
+                                >
+                                  <MdChevronRight className="text-base" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {isCover && (
+                          <div className="bg-amber-600 text-white text-[10px] font-bold text-center py-0.5 tracking-wider uppercase flex items-center justify-center gap-1">
+                            <MdStar className="text-xs" />
+                            <span>Portada Principal</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -733,6 +920,131 @@ export default function AdminNewProductClient({
                   onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
                   className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 font-bold focus:outline-none focus:border-amber-700"
                 />
+              </div>
+
+              <div>
+                {/* Header con label y botón discreto */}
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold text-stone-700">
+                    Días de Elaboración Bajo Encargo <span className="text-rose-500">*</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddCraftingDayForm(!showAddCraftingDayForm)}
+                    className="text-[11px] font-semibold text-amber-900 hover:text-amber-950 hover:underline inline-flex items-center gap-1"
+                  >
+                    <MdAdd className="text-xs" />
+                    <span>{showAddCraftingDayForm ? 'Ocultar' : 'Añadir opción'}</span>
+                  </button>
+                </div>
+
+                {/* Campo de texto principal */}
+                <input
+                  type="text"
+                  required
+                  value={formData.craftingDays}
+                  onChange={(e) => setFormData({ ...formData, craftingDays: e.target.value })}
+                  placeholder="Ej: 5-10 días hábiles"
+                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 font-bold focus:outline-none focus:border-amber-700 shadow-2xs"
+                />
+
+                <p className="text-[11px] text-stone-400 mt-1">
+                  Rango estimado de días para tejer el producto cuando no hay stock.
+                </p>
+
+                {/* Formulario rápido para añadir nuevo preset */}
+                {showAddCraftingDayForm && (
+                  <div className="mt-2.5 p-3 bg-amber-50/70 border border-amber-200/80 rounded-[8px] space-y-2 animate-in slide-in-from-top-1 duration-150">
+                    <label className="block text-xs font-bold text-amber-950">
+                      Añadir nuevo rango predeterminado:
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newCraftingDayInput}
+                        onChange={(e) => setNewCraftingDayInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddCraftingDayPreset();
+                          }
+                        }}
+                        placeholder="Ej: 10-15 días hábiles, 1-2 semanas..."
+                        className="flex-1 px-3 py-1.5 bg-white border border-amber-300 rounded-[6px] text-xs text-stone-800 focus:outline-none focus:border-amber-700 font-medium"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleAddCraftingDayPreset()}
+                        className="px-3.5 py-1.5 bg-[#72594e] hover:bg-[#60493f] text-white rounded-[6px] text-xs font-bold shrink-0 transition-colors shadow-2xs"
+                      >
+                        Guardar
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Chips de opciones rápidas (Limpio y estilizado) */}
+                <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+                  {presetCraftingDays.map((preset) => {
+                    const isSelected = formData.craftingDays.trim().toLowerCase() === preset.trim().toLowerCase();
+                    const isConfirming = craftingDayToDelete === preset;
+
+                    if (isConfirming) {
+                      return (
+                        <div
+                          key={preset}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 border border-rose-200 text-rose-900 rounded-full text-[11px] font-semibold animate-in fade-in duration-150"
+                        >
+                          <span>¿Borrar "{preset}"?</span>
+                          <button
+                            type="button"
+                            onClick={() => confirmRemoveCraftingDayPreset(preset)}
+                            className="px-2 py-0.5 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-[10px] font-bold transition-colors"
+                          >
+                            Sí
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCraftingDayToDelete(null)}
+                            className="px-2 py-0.5 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-full text-[10px] font-bold transition-colors"
+                          >
+                            No
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div
+                        key={preset}
+                        onClick={() => setFormData({ ...formData, craftingDays: preset })}
+                        className={`group inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold cursor-pointer transition-all ${
+                          isSelected
+                            ? 'bg-[#72594e] text-white shadow-xs ring-1 ring-[#72594e]'
+                            : 'bg-stone-100 text-stone-700 hover:bg-stone-200/80 hover:text-stone-900 border border-stone-200/60'
+                        }`}
+                      >
+                        {isSelected && <MdCheck className="text-xs text-amber-200 shrink-0" />}
+                        <span>{preset}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCraftingDayToDelete(preset);
+                          }}
+                          className={`p-0.5 rounded-full transition-opacity ${
+                            isSelected
+                              ? 'text-white/70 hover:text-white hover:bg-white/20'
+                              : 'text-stone-400 opacity-0 group-hover:opacity-100 hover:text-rose-600 hover:bg-stone-300/50'
+                          }`}
+                          title={`Eliminar "${preset}"`}
+                        >
+                          <MdClose className="text-[11px]" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>

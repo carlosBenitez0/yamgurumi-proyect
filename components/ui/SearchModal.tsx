@@ -430,7 +430,11 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                                   : "hover:bg-surface-container/60 text-on-surface-variant"
                               }`}
                             >
-                              <span className="text-lg">{cat.icon}</span>
+                              {cat.icon && (cat.icon.startsWith('http') || cat.icon.startsWith('data:')) ? (
+                                <img src={cat.icon} alt="" className="w-5 h-5 object-cover rounded-[4px] flex-shrink-0" />
+                              ) : (
+                                <span className="text-lg">{cat.icon}</span>
+                              )}
                               <div className="flex-1 min-w-0">
                                 <span className="font-body text-sm font-semibold block truncate">
                                   <HighlightedText text={cat.name} query={query} />

@@ -1,6 +1,7 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
 import { useMemo, useRef, useState, useEffect } from "react";
 import * as THREE from "three";
 import { MdAutoFixHigh } from "react-icons/md";
@@ -337,6 +338,8 @@ export default function Register3D() {
           style={{ background: "transparent", overflow: "visible" }}
           onCreated={() => setLoaded(true)}
         >
+          <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={1.2} maxPolarAngle={Math.PI / 2} minPolarAngle={Math.PI / 4} />
+          
           {/* Lighting */}
           <ambientLight intensity={0.75} />
           <directionalLight position={[5, 6, 4]} intensity={1.4} />

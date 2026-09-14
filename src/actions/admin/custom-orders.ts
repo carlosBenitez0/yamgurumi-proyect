@@ -67,7 +67,12 @@ export async function quoteCustomOrderAction(data: {
   revalidatePath('/admin/encargos');
   revalidatePath('/admin');
 
-  return { success: true, customOrder: updated };
+  const formattedCustomOrder = {
+    ...updated,
+    quotedPrice: updated.quotedPrice ? Number(updated.quotedPrice) : null,
+  };
+
+  return { success: true, customOrder: formattedCustomOrder };
 }
 
 export async function seedSampleCustomOrdersIfEmptyAction() {

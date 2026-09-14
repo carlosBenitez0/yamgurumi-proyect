@@ -424,6 +424,63 @@
   60% { transform: scale(0.95); }
 }
 
+/* === Custom Order CTA - Fluid Animations === */
+/* Latido suave del ícono (curva sinusoidal, sin tirones) */
+@keyframes pulse-whatsapp {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.85;
+  }
+}
+
+.animate-pulse-whatsapp {
+  animation: pulse-whatsapp 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* Glow respirante: sombra que inhala/exhala + anillo sonar que se expande y se desvanece */
+@keyframes cta-glow-pulse {
+  0%, 100% {
+    box-shadow:
+      0 8px 30px rgba(7, 94, 84, 0.35),
+      0 0 0 0 rgba(7, 94, 84, 0.28);
+  }
+  50% {
+    box-shadow:
+      0 12px 44px rgba(7, 94, 84, 0.5),
+      0 0 0 10px rgba(7, 94, 84, 0);
+  }
+}
+
+.cta-glow-pulse {
+  animation: cta-glow-pulse 3.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* Barrido de brillo periódico: cruza el botón cada ~4s y descansa */
+@keyframes cta-shimmer {
+  0% {
+    transform: translateX(-130%) skewX(-18deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  36% {
+    opacity: 1;
+  }
+  45%, 100% {
+    transform: translateX(340%) skewX(-18deg);
+    opacity: 0;
+  }
+}
+
+.cta-shimmer {
+  animation: cta-shimmer 4.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
 /* === Search Modal === */
 @keyframes search-fade-in {
   from { opacity: 0; }

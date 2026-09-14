@@ -14,9 +14,14 @@ import {
   MdRadioButtonUnchecked,
   MdShield,
   MdMarkEmailRead,
-  MdRefresh
+  MdRefresh,
+  MdOutlinePerson,
+  MdOutlineEmail,
+  MdOutlineLock,
+  MdAutoAwesome
 } from 'react-icons/md';
 import Register3D from "@/components/Register3D";
+import AuthBenefits from "@/components/AuthBenefits";
 
 export default function RegisterPage() {
   const [state, action, isPending] = useActionState(registerAction, null);
@@ -115,17 +120,34 @@ export default function RegisterPage() {
         </svg>
       </div>
 
-      {/* Contenedor Grid Dividido */}
-      <div className="w-full max-w-md lg:max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center z-10 relative">
-        {/* Columna Izquierda: Modelo 3D */}
-        <div className="hidden lg:block lg:col-span-7 h-[450px] xl:h-[550px] relative order-1">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] bg-secondary-container/20 rounded-full blur-3xl -z-10 pointer-events-none" />
-          <Register3D />
+      {/* Contenedor Grid Dividido (50/50 equilibrado) */}
+      <div className="w-full max-w-6xl xl:max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 items-center z-10 relative my-auto py-8 sm:py-12">
+        {/* Showcase Panel: Segundo en móvil (order-2), Izquierda en desktop (lg:order-1) */}
+        <div className="lg:col-span-6 xl:col-span-7 w-full order-2 lg:order-1">
+          <div className="relative w-full bg-surface-container-low/60 backdrop-blur-xl p-6 sm:p-8 xl:p-10 rounded-[2.5rem] shadow-card border border-primary-container/20 flex flex-col justify-between overflow-hidden gap-6">
+            
+            {/* Badge interactivo flotante craft */}
+            <div className="absolute top-6 right-6 z-10 hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-lowest/80 backdrop-blur-md border border-primary-container/20 text-[11px] font-bold text-secondary shadow-xs cursor-grab">
+              <MdAutoAwesome className="text-tertiary text-xs animate-pulse" />
+              <span>Arrastra para rotar • 3D</span>
+            </div>
+
+            {/* Escenario Modelo 3D Panda */}
+            <div className="relative w-full h-[280px] sm:h-[340px] xl:h-[380px] flex items-center justify-center">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[75%] h-[75%] bg-secondary-container/20 rounded-full blur-3xl -z-10 pointer-events-none" />
+              <Register3D />
+            </div>
+
+            {/* Sección de Ventajas */}
+            <div className="w-full pt-4 border-t border-outline-variant/15">
+              <AuthBenefits />
+            </div>
+          </div>
         </div>
 
-        {/* Columna Derecha: Tarjeta de Registro */}
-        <div className="lg:col-span-5 w-full flex justify-center order-2">
-          <div className="relative w-full bg-surface-container-lowest p-8 sm:p-10 rounded-3xl shadow-card border border-primary-container/20 transition-all duration-300 hover:shadow-elevation">
+        {/* Tarjeta de Registro: Primero en móvil (order-1), Derecha en desktop (lg:order-2) */}
+        <div className="lg:col-span-6 xl:col-span-5 w-full flex justify-center order-1 lg:order-2">
+          <div className="relative w-full bg-surface-container-lowest p-8 sm:p-10 rounded-[2.5rem] shadow-card border border-primary-container/20 transition-all duration-300 hover:shadow-elevation">
             
             {/* Detalle cosido superior */}
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-white text-[11px] font-bold uppercase tracking-widest rounded-full shadow-sm">
@@ -206,7 +228,7 @@ export default function RegisterPage() {
                     Crear Cuenta
                   </h1>
                   <p className="font-body text-body-sm text-on-surface-variant">
-                    Regístrate y recibe un 10% de descuento en tu primer amigurumi
+                    Regístrate y recibe un 10% de descuento en tu primer pedido
                   </p>
                 </div>
 
@@ -224,17 +246,20 @@ export default function RegisterPage() {
                       Nombre <span className="text-on-surface-variant/40 font-normal">(Opcional)</span>
                     </label>
                     <div className="relative">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 pointer-events-none text-lg">
+                        <MdOutlinePerson />
+                      </div>
                       <input 
                         type="text" 
                         id="name"
                         {...register('name')}
                         placeholder="Ej. Elizabeth"
-                        className={`block w-full rounded-2xl border p-4 text-on-surface placeholder:text-on-surface-variant/40 outline-none transition-all duration-200 ${
+                        className={`block w-full rounded-2xl border py-3.5 pl-11 pr-11 text-on-surface placeholder:text-on-surface-variant/40 outline-none transition-all duration-200 ${
                           errors.name 
                             ? 'border-error bg-error/5 focus:ring-2 focus:ring-error' 
                             : (touchedFields.name || dirtyFields.name) && !errors.name
                             ? 'border-emerald-500/60 bg-emerald-50/20 focus:ring-2 focus:ring-emerald-500'
-                            : 'border-outline-variant/40 bg-surface-container-lowest focus:ring-2 focus:ring-secondary'
+                            : 'border-outline-variant/40 bg-surface-container-lowest focus:ring-2 focus:ring-secondary/40 focus:border-secondary'
                         }`}
                       />
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -256,17 +281,20 @@ export default function RegisterPage() {
                       Correo electrónico
                     </label>
                     <div className="relative">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 pointer-events-none text-lg">
+                        <MdOutlineEmail />
+                      </div>
                       <input 
                         type="email" 
                         id="email"
                         {...register('email')}
                         placeholder="lizi123@gmail.com"
-                        className={`block w-full rounded-2xl border p-4 text-on-surface placeholder:text-on-surface-variant/40 outline-none transition-all duration-200 ${
+                        className={`block w-full rounded-2xl border py-3.5 pl-11 pr-11 text-on-surface placeholder:text-on-surface-variant/40 outline-none transition-all duration-200 ${
                           errors.email 
                             ? 'border-error bg-error/5 focus:ring-2 focus:ring-error' 
                             : (touchedFields.email || dirtyFields.email) && !errors.email
                             ? 'border-emerald-500/60 bg-emerald-50/20 focus:ring-2 focus:ring-emerald-500'
-                            : 'border-outline-variant/40 bg-surface-container-lowest focus:ring-2 focus:ring-secondary'
+                            : 'border-outline-variant/40 bg-surface-container-lowest focus:ring-2 focus:ring-secondary/40 focus:border-secondary'
                         }`}
                       />
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -297,6 +325,9 @@ export default function RegisterPage() {
                     </div>
 
                     <div className="relative">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 pointer-events-none text-lg">
+                        <MdOutlineLock />
+                      </div>
                       <input 
                         type="password" 
                         id="password"
@@ -304,12 +335,12 @@ export default function RegisterPage() {
                         onFocus={() => setIsPasswordFocused(true)}
                         onBlur={() => setIsPasswordFocused(false)}
                         placeholder="••••••••"
-                        className={`block w-full rounded-2xl border p-4 text-on-surface placeholder:text-on-surface-variant/40 outline-none transition-all duration-200 ${
+                        className={`block w-full rounded-2xl border py-3.5 pl-11 pr-11 text-on-surface placeholder:text-on-surface-variant/40 outline-none transition-all duration-200 ${
                           errors.password 
                             ? 'border-error bg-error/5 focus:ring-2 focus:ring-error' 
                             : isPasswordFullyValid
                             ? 'border-emerald-500/60 bg-emerald-50/20 focus:ring-2 focus:ring-emerald-500'
-                            : 'border-outline-variant/40 bg-surface-container-lowest focus:ring-2 focus:ring-secondary'
+                            : 'border-outline-variant/40 bg-surface-container-lowest focus:ring-2 focus:ring-secondary/40 focus:border-secondary'
                         }`}
                       />
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -378,9 +409,9 @@ export default function RegisterPage() {
                   <button 
                     type="submit" 
                     disabled={isPending}
-                    className="w-full flex justify-center py-4 px-6 bg-secondary text-white font-bold rounded-full shadow-button hover:bg-secondary/90 transition-all duration-300 tactile-press active:scale-95 disabled:opacity-50 mt-8 text-body-md"
+                    className="group relative w-full flex justify-center py-4 px-6 bg-secondary text-white font-bold rounded-full shadow-button hover:bg-secondary/90 transition-all duration-300 tactile-press active:scale-95 disabled:opacity-50 mt-8 text-body-md overflow-hidden"
                   >
-                    {isPending ? 'Registrando...' : 'Registrarse'}
+                    <span className="relative z-10">{isPending ? 'Registrando...' : 'Registrarse'}</span>
                   </button>
                 </form>
 

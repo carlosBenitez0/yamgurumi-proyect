@@ -3,11 +3,13 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { MdClose, MdShoppingBag } from "react-icons/md";
+import { MdClose, MdShoppingBag, MdEdit } from "react-icons/md";
 import {
   useCartStore,
   selectCount,
   selectSubtotal,
+  BASE_OPTIONS_INFO,
+  type BaseType,
 } from "@/lib/cart-store";
 import QtyStepper from "@/components/cart/QtyStepper";
 import { YarnBall, StitchDots } from "@/components/ui/CraftBackground";
@@ -20,6 +22,7 @@ export default function CartDrawer() {
   const isOpen = useCartStore((s) => s.isOpen);
   const closeDrawer = useCartStore((s) => s.closeDrawer);
   const removeItem = useCartStore((s) => s.removeItem);
+  const toggleItemBase = useCartStore((s) => s.toggleItemBase);
   const count = useCartStore(selectCount);
   const subtotal = useCartStore(selectSubtotal);
 
@@ -125,52 +128,82 @@ export default function CartDrawer() {
           <>
             {/* ── Items ────────────────────────────────────── */}
             <ul className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3">
-              {items.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex gap-3.5 bg-surface-container-lowest rounded-2xl border border-outline-variant/15 p-3"
-                >
-                  <Link
-                    href={`/producto/${item.slug}`}
-                    onClick={closeDrawer}
-                    className="relative w-16 h-16 rounded-xl overflow-hidden bg-surface-container flex-shrink-0 focus-ring"
-                    aria-label={`Ver ${item.name}`}
-                  >
-                    <Image
-                      src={item.imageUrl}
-                      alt={item.name}
-                      fill
-                      sizes="64px"
-                      className="object-cover"
-                    />
-                  </Link>
+              {items.map((item) => {
+                const bType: BaseType = item.baseType || (item.hasBase ? "standard" : "none");
+                const bInfo = BASE_OPTIONS_INFO[bType];
 
-                  <div className="flex-1 min-w-0 flex flex-col">
-                    <div className="flex items-start justify-between gap-2">
-                      <Link
-                        href={`/producto/${item.slug}`}
-                        onClick={closeDrawer}
-                        className="font-headline text-[15px] font-semibold text-on-surface hover:text-secondary transition-colors leading-snug focus-ring"
-                      >
-                        {item.name}
-                      </Link>
-                      <button
-                        onClick={() => removeItem(item.id)}
-                        className="p-1.5 -m-1 hover:bg-error-container/40 rounded-full text-on-surface-variant hover:text-error transition-colors focus-ring"
-                        aria-label={`Quitar ${item.name} del pedido`}
-                      >
-                        <MdClose className="text-[16px]" />
-                      </button>
+                return (
+                  <li
+                    key={item.id}
+                    className="relative flex gap-3.5 bg-surface-container-lowest/90 backdrop-blur-xs rounded-2xl border border-outline-variant/15 p-3 shadow-card hover:shadow-card-hover transition-all duration-300 group"
+                  >
+                    <Link
+                      href={`/producto/${item.slug}`}
+                      onClick={closeDrawer}
+                      className="relative w-16 h-16 rounded-xl overflow-hidden bg-surface-container flex-shrink-0 focus-ring shadow-2xs ring-1 ring-black/5 dark:ring-white/10"
+                      aria-label={`Ver ${item.name}`}
+                    >
+                      <Image
+                        src={item.imageUrl}
+                        alt={item.name}
+                        fill
+                        sizes="64px"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300 ease-out"
+                      />
+                    </Link>
+
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-start justify-between gap-1.5">
+                          <div className="min-w-0">
+                            <Link
+                              href={`/producto/${item.slug}`}
+                              onClick={closeDrawer}
+                              className="font-headline text-[14px] font-bold text-on-surface hover:text-secondary transition-colors leading-tight focus-ring block truncate"
+                            >
+                              {item.name}
+                            </Link>
+                            <p className="text-[11px] font-body text-on-surface-variant/70 font-medium mt-0.5">
+                              ${item.price.toFixed(2)} c/u
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => removeItem(item.id)}
+                            className="w-7 h-7 rounded-full bg-surface-container-high/40 hover:bg-error/10 text-on-surface-variant/70 hover:text-error transition-all flex items-center justify-center flex-shrink-0 focus-ring active:scale-95 -mt-0.5 -mr-0.5"
+                            aria-label={`Quitar ${item.name} del pedido`}
+                            title="Quitar de la bolsa"
+                          >
+                            <MdClose className="text-[15px]" />
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          <button
+                            type="button"
+                            onClick={() => toggleItemBase(item.id)}
+                            className={`inline-flex items-center gap-1 text-[10px] font-medium px-2.5 py-0.5 rounded-full border transition-all cursor-pointer ${
+                              bType !== "none"
+                                ? "bg-secondary-container/40 hover:bg-secondary-container/70 text-secondary border-secondary/30 shadow-2xs"
+                                : "bg-surface-container-high/60 hover:bg-surface-container-high text-on-surface-variant/80 hover:text-on-surface border-outline-variant/20 shadow-2xs"
+                            }`}
+                            title="Haz clic para alternar: Sin base ➔ Normal (+$1.00) ➔ Grande (+$1.50)"
+                          >
+                            <span>{bType !== "none" ? `🪵 ${bInfo.label}` : "Sin base"}</span>
+                            <MdEdit className="text-[10px] opacity-60 flex-shrink-0" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-outline-variant/10">
+                        <QtyStepper id={item.id} qty={item.quantity} />
+                        <span className="font-headline text-body-md font-bold text-primary tabular-nums tracking-tight">
+                          ${(item.price * item.quantity).toFixed(2)}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between mt-auto pt-1.5">
-                      <QtyStepper id={item.id} qty={item.quantity} />
-                      <span className="font-headline text-[15px] font-bold text-primary tabular-nums">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
 
             {/* ── Footer ───────────────────────────────────── */}

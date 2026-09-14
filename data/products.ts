@@ -11,9 +11,14 @@ export interface Product {
   materials: string;
   tags: string[];
   imageUrl: string;
+  imageUrls?: string[];
   rating: number;
   reviews: number;
   searchKeywords: string[];
+  /* Piezas disponibles para venta inmediata. Si es 0, se ofrece bajo encargo.
+   * Opcional: los productos estáticos de fallback no lo definen. */
+  stock?: number;
+  craftingDays?: string;
 }
 
 export type ProductCategory =

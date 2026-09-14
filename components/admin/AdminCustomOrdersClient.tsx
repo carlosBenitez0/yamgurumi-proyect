@@ -90,8 +90,10 @@ const STATUS_CONFIG: Record<
 
 export default function AdminCustomOrdersClient({
   initialCustomOrders,
+  initialSettings,
 }: {
   initialCustomOrders: CustomOrderData[];
+  initialSettings?: { key: string; value: string }[];
 }) {
   const [customOrders, setCustomOrders] = useState<CustomOrderData[]>(initialCustomOrders);
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
@@ -222,7 +224,17 @@ export default function AdminCustomOrdersClient({
     const digits = rawPhone.replace(/[^0-9]/g, '');
     const cleanPhone = digits.length === 8 ? `503${digits}` : digits;
 
-    const text = getFormattedQuoteText(co, priceOverride, statusOverride);
+    const tplFound = initialSettings?.find((s) => s.key === 'wa_tpl_admin_custom_order')?.value;
+    let text = '';
+    if (tplFound) {
+      text = tplFound
+        .replaceAll('{nombre}', co.customerName)
+        .replaceAll('{encargo_id}', co.id.slice(-6).toUpperCase())
+        .replaceAll('{detalles}', `${co.title}: ${co.description}`);
+    } else {
+      text = getFormattedQuoteText(co, priceOverride, statusOverride);
+    }
+
     return `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(text)}`;
   };
 

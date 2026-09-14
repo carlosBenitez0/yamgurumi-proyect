@@ -21,6 +21,7 @@ const productSchema = z.object({
   salePrice: z.number().positive().optional().nullable(),
   stock: z.number().int().min(0, 'El stock no puede ser negativo'),
   size: z.string().default('Mediano'),
+  craftingDays: z.string().default('5-10 días hábiles'),
   description: z.string().min(5, 'Escribe una descripción completa del producto'),
   materials: z.string().min(3, 'Especifica los materiales del amigurumi'),
   imageUrls: z.array(z.string()).default([]),
@@ -97,6 +98,7 @@ export async function createProductAction(data: ProductInput) {
       stock: validated.stock,
       categoryId: validated.categoryId,
       size: validated.size,
+      craftingDays: validated.craftingDays,
       description: validated.description,
       materials: validated.materials,
       imageUrls: validated.imageUrls,
@@ -122,7 +124,13 @@ export async function createProductAction(data: ProductInput) {
   revalidatePath('/catalog');
   revalidatePath('/');
 
-  return { success: true, product: newProduct };
+  const formattedProduct = {
+    ...newProduct,
+    price: Number(newProduct.price),
+    salePrice: newProduct.salePrice ? Number(newProduct.salePrice) : null,
+  };
+
+  return { success: true, product: formattedProduct };
 }
 
 export async function updateProductAction(id: string, data: Partial<ProductInput>) {
@@ -137,6 +145,7 @@ export async function updateProductAction(id: string, data: Partial<ProductInput
       ...(data.stock !== undefined && { stock: data.stock }),
       ...(data.categoryId && { categoryId: data.categoryId }),
       ...(data.size && { size: data.size }),
+      ...(data.craftingDays && { craftingDays: data.craftingDays }),
       ...(data.description && { description: data.description }),
       ...(data.materials && { materials: data.materials }),
       ...(data.imageUrls && { imageUrls: data.imageUrls }),
@@ -161,7 +170,60 @@ export async function updateProductAction(id: string, data: Partial<ProductInput
   revalidatePath('/catalog');
   revalidatePath('/');
 
-  return { success: true, product: updatedProduct };
+  const formattedProduct = {
+    ...updatedProduct,
+    price: Number(updatedProduct.price),
+    salePrice: updatedProduct.salePrice ? Number(updatedProduct.salePrice) : null,
+  };
+
+  return { success: true, product: formattedProduct };
+}
+
+export async function adjustProductStockAction(id: string, delta: number) {
+  const admin = await requireAdmin();
+
+  if (!Number.isInteger(delta) || delta === 0) {
+    return { success: false, error: 'El ajuste de stock debe ser un número entero distinto de cero.' };
+  }
+
+  const current = await prisma.product.findUnique({
+    where: { id },
+    select: { name: true, stock: true },
+  });
+
+  if (!current) {
+    return { success: false, error: 'Producto no encontrado.' };
+  }
+
+  const newStock = current.stock + delta;
+  if (newStock < 0) {
+    return {
+      success: false,
+      error: `"${current.name}" solo tiene ${current.stock} ${current.stock === 1 ? 'pieza' : 'piezas'}; no puedes quitar ${Math.abs(delta)}.`,
+    };
+  }
+
+  const updated = await prisma.product.update({
+    where: { id },
+    data: { stock: newStock },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      userId: admin.sub,
+      userEmail: admin.email,
+      action: 'ADJUST_PRODUCT_STOCK',
+      entity: 'Product',
+      entityId: id,
+      details: `Stock de "${updated.name}" ajustado en ${delta > 0 ? '+' : ''}${delta} (${current.stock} → ${newStock})`,
+    },
+  });
+
+  revalidatePath('/admin/productos');
+  revalidatePath('/catalog');
+  revalidatePath('/');
+
+  return { success: true, stock: updated.stock };
 }
 
 export async function toggleProductActiveAction(id: string, isActive: boolean) {

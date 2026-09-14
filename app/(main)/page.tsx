@@ -7,8 +7,10 @@ import Newsletter from "@/components/sections/Newsletter";
 import SectionWrapper from "@/components/ui/SectionWrapper";
 import { YarnThread, CrochetHook } from "@/components/ui/CraftBackground";
 
-import { MdVerified, MdSpa, MdEco, MdLocalShipping } from "react-icons/md";
+import { MdVerified, MdSpa, MdEco, MdLocalShipping, MdChat, MdArrowForward } from "react-icons/md";
 import Link from "next/link";
+import { buildWhatsAppUrl } from "@/src/lib/whatsappTemplates";
+import { getWhatsAppTemplatesMap } from "@/src/lib/whatsappTemplatesServer";
 
 const trustBadges = [
   { icon: <MdSpa />, label: "100% Hecho a Mano" },
@@ -16,7 +18,11 @@ const trustBadges = [
   { icon: <MdLocalShipping />, label: "Envíos Rápidos" },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const whatsappTemplates = await getWhatsAppTemplatesMap();
+  const heroText = whatsappTemplates.wa_tpl_hero_custom || '¡Hola Yamgurumi! 🧵 Quiero hacer un encargo especial a medida. Me gustaría que me ayuden a crear mi amigurumi personalizado.';
+  const heroWhatsAppUrl = buildWhatsAppUrl('50377311064', heroText);
+
   return (
     <>
       <main className="w-full overflow-x-hidden min-h-screen">
@@ -43,47 +49,69 @@ export default function Home() {
             color="#acedfe"
             strokeWidth={1.5}
             dashArray="8 8"
-            opacity={0.15}
-            className="absolute top-[25%] left-0 w-full h-32 craft-sway -z-10"
+            opacity={0.2}
+            className="absolute top-[25%] left-0 w-full h-32 craft-drift -z-10"
           />
           <CrochetHook
             className="bottom-[18%] left-[5%] craft-drift -z-10 hidden lg:block"
             opacity={0.12}
           />
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center w-full">
-            {/* Text Content - Always first on mobile */}
-            <div className="lg:col-span-7 z-10 text-center lg:text-left order-1 flex flex-col items-center lg:items-start hero-stagger">
-              <div className="inline-flex items-center gap-2 px-6 py-1.5 rounded-full bg-secondary-container/60 text-secondary text-xs font-bold uppercase tracking-wider mb-5 shadow-sm border border-secondary/20">
-                <MdVerified className="text-sm" />
-                <span>Arte en Crochet &amp; Amigurumis</span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            {/* Left Content (Text & CTA) - 7 cols on lg */}
+            <div className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
+              {/* Badge Pills */}
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2">
+                <span className="badge-pill bg-secondary-container text-secondary border border-secondary/30 px-3.5 py-1 text-xs font-bold font-label uppercase tracking-widest flex items-center gap-1.5 shadow-xs">
+                  <MdVerified className="text-sm text-secondary" />
+                  Amigurumis 100% Hechos a Mano
+                </span>
+                <span className="badge-pill bg-tertiary/15 text-tertiary border border-tertiary/30 px-3 py-1 text-xs font-bold font-label uppercase tracking-widest flex items-center gap-1">
+                  🇸🇻 El Salvador
+                </span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-headline font-bold leading-[1.1] text-on-surface mb-4 sm:mb-5">
-                Hecho a mano,
-                <br />
-                <span className="text-secondary">tejido con amor</span>
+              {/* Main Headline */}
+              <h1 className="font-headline font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.1] tracking-tight">
+                <span className="text-on-surface block">Hecho a mano,</span>
+                <span className="text-secondary block">tejido con amor</span>
               </h1>
 
-              <p className="text-base sm:text-lg text-on-surface-variant font-body mb-8 sm:mb-10 max-w-lg leading-relaxed">
-                Descubre nuestra colección de amigurumis artesanales, diseñados
-                con hilos de primera calidad y rellenos de pura ternura para
-                acompañar tus mejores momentos.
+              {/* Subtitle / Description */}
+              <p className="font-body text-base sm:text-lg text-on-surface-variant max-w-xl leading-relaxed">
+                Descubre nuestra colección de amigurumis artesanales, diseñados con hilos de primera calidad y rellenos de pura ternura para acompañar tus mejores momentos.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto justify-center lg:justify-start mb-6">
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row items-center gap-4 pt-2 w-full sm:w-auto">
                 <Link
-                  href="#tienda"
-                  className="bg-secondary text-white px-8 py-4 font-bold rounded-full hover:bg-secondary/90 active:scale-95 transition-all text-center text-base inline-flex justify-center items-center tactile-press"
+                  href="/catalog"
+                  className="w-full sm:w-auto text-center px-8 py-4 bg-secondary text-white font-body font-bold text-base rounded-full shadow-button hover:bg-secondary/90 hover:shadow-elevation hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  Ver Colección
+                  <span>Explorar Catálogo</span>
+                  <MdArrowForward className="text-xl" />
                 </Link>
-                <Link
-                  href="/contact?subject=custom"
-                  className="border-2 border-primary text-primary font-bold rounded-full hover:bg-primary/5 active:scale-95 transition-all text-center text-base px-10 py-3.5 inline-flex justify-center items-center tactile-press"
+                <a
+                  href={heroWhatsAppUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative inline-flex items-center gap-2.5 overflow-hidden whitespace-nowrap rounded-full border border-whatsapp/30 bg-whatsapp px-8 py-4 font-body text-base font-bold text-white cta-glow-pulse will-change-transform transition-[transform,background-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:scale-[1.04] hover:bg-whatsapp-hover active:translate-y-0 active:scale-[0.97] focus-ring"
+                  aria-label="Encargo especial - Contactar por WhatsApp"
                 >
-                  Encargo Especial
-                </Link>
+                  {/* Barrido de brillo periódico */}
+                  <span
+                    aria-hidden="true"
+                    className="cta-shimmer pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent"
+                  />
+                  <span className="flex-shrink-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:rotate-[10deg] group-hover:scale-110">
+                    <MdChat className="h-5 w-5 animate-pulse-whatsapp" />
+                  </span>
+                  <span className="relative">Encargo especial</span>
+                  <MdArrowForward
+                    aria-hidden="true"
+                    className="-ml-1 w-0 opacity-0 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:ml-0 group-hover:w-5 group-hover:opacity-100"
+                  />
+                </a>
               </div>
 
               {/* Trust Badges */}

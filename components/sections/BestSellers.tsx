@@ -9,6 +9,8 @@ import { MdStar, MdStarBorder, MdFavorite, MdFavoriteBorder, MdAddShoppingCart, 
 import { products as allProducts } from "@/data/products";
 import type { Product } from "@/data/products";
 import { useCartStore } from "@/lib/cart-store";
+import { useFavoritesStore } from "@/src/store/useFavoritesStore";
+import { useAuth } from "@/src/lib/auth/auth-context";
 
 const mainCategoryTabs = ["Todos", "Muñecos", "Decoración", "Llaveros"];
 const extraCategories = ["Accesorios", "Navideño", "Infantil"];
@@ -44,11 +46,13 @@ function StarRating({ rating, reviews }: { rating: number; reviews: number }) {
 
 export default function BestSellers() {
   const [activeTab, setActiveTab] = useState("Todos");
-  const [favorites, setFavorites] = useState<Record<string, boolean>>({});
   const [addedId, setAddedId] = useState<string | null>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const addItem = useCartStore((s) => s.addItem);
+  const storeIsFav = useFavoritesStore((s) => s.favoritesMap);
+  const storeToggleFav = useFavoritesStore((s) => s.toggleFavorite);
+  const { isAuthenticated, redirectToLogin } = useAuth();
 
   useEffect(
     () => () => {
@@ -57,8 +61,12 @@ export default function BestSellers() {
     [],
   );
 
-  const toggleFav = (name: string) => {
-    setFavorites((prev) => ({ ...prev, [name]: !prev[name] }));
+  const toggleFav = (id: string) => {
+    if (!isAuthenticated) {
+      redirectToLogin();
+      return;
+    }
+    storeToggleFav(id);
   };
 
   const handleAdd = (product: Product) => {
@@ -174,13 +182,13 @@ export default function BestSellers() {
                   <button
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFav(product.id); }}
                     className={`absolute top-2.5 right-2.5 w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-md transition-all active:scale-90 shadow-sm ${
-                      favorites[product.id]
+                      storeIsFav[product.id]
                         ? "bg-tertiary text-on-tertiary"
                         : "bg-surface-container-lowest/80 text-on-surface-variant hover:bg-tertiary/20"
                     }`}
                     aria-label="Agregar a favoritos"
                   >
-                    {favorites[product.id] ? <MdFavorite className="text-[18px]" /> : <MdFavoriteBorder className="text-[18px]" />}
+                    {storeIsFav[product.id] ? <MdFavorite className="text-[18px]" /> : <MdFavoriteBorder className="text-[18px]" />}
                   </button>
                 </div>
                 <div className="flex flex-col gap-0.5 flex-1 px-0.5">
@@ -272,13 +280,13 @@ export default function BestSellers() {
                   <button
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFav(product.id); }}
                     className={`absolute top-2.5 right-2.5 w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-md transition-all active:scale-90 shadow-sm ${
-                      favorites[product.id]
+                      storeIsFav[product.id]
                         ? "bg-tertiary text-on-tertiary"
                         : "bg-surface-container-lowest/80 text-on-surface-variant hover:bg-tertiary/20"
                     }`}
                     aria-label="Agregar a favoritos"
                   >
-                    {favorites[product.id] ? <MdFavorite className="text-[18px]" /> : <MdFavoriteBorder className="text-[18px]" />}
+                    {storeIsFav[product.id] ? <MdFavorite className="text-[18px]" /> : <MdFavoriteBorder className="text-[18px]" />}
                   </button>
                 </div>
 

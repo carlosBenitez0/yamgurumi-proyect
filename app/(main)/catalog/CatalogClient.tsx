@@ -140,10 +140,27 @@ const categoryIcon: Record<string, string> = {
 
 export default function CatalogClient({
   initialProducts,
+  initialCategories,
 }: {
   initialProducts?: Product[];
+  initialCategories?: any[];
 }) {
   const baseProducts = initialProducts && initialProducts.length > 0 ? initialProducts : allProducts;
+
+  const displayCategories = useMemo(() => {
+    if (initialCategories && initialCategories.length > 0) {
+      return initialCategories.map((c) => ({
+        name: c.name,
+        count: baseProducts.filter((p) => p.category === c.name).length,
+        icon: c.imageUrl || c.icon || '🧶',
+      }));
+    }
+    return categories.map((c) => ({
+      name: c.name,
+      count: baseProducts.filter((p) => p.category === c.name).length,
+      icon: c.icon,
+    }));
+  }, [initialCategories, baseProducts]);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -172,7 +189,6 @@ export default function CatalogClient({
   const [activeTags, setActiveTags] = useState(urlTags);
   const [itemsPerPage, setItemsPerPage] = useState(urlPerPage);
   const [currentPage, setCurrentPage] = useState(urlPage);
-  const [favorites, setFavorites] = useState<Record<string, boolean>>({});
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -397,10 +413,6 @@ export default function CatalogClient({
     searchInputRef.current?.focus();
   }, [pathname, router]);
 
-  const toggleFavorite = useCallback((id: string) => {
-    setFavorites((prev) => ({ ...prev, [id]: !prev[id] }));
-  }, []);
-
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const onSearchInput = useCallback(
@@ -478,7 +490,7 @@ export default function CatalogClient({
   const filterPanelProps = {
     activeCategory,
     onCategoryChange: handleCategoryChange,
-    totalProducts: allProducts.length,
+    totalProducts: baseProducts.length,
     priceMin,
     priceMax,
     onPriceMinChange: handlePriceMinChange,
@@ -493,6 +505,7 @@ export default function CatalogClient({
     tagCounts,
     hasActiveFilters,
     onClear: clearFilters,
+    categories: displayCategories,
   };
 
   return (
@@ -569,9 +582,9 @@ export default function CatalogClient({
                     : "bg-surface-container-lowest text-on-surface-variant hover:bg-secondary-container/20 border border-primary-container/25"
                 }`}
               >
-                <span>🧶 Todos ({allProducts.length})</span>
+                <span>🧶 Todos ({baseProducts.length})</span>
               </button>
-              {categories.map((cat) => {
+              {displayCategories.map((cat) => {
                 const isActive = activeCategory === cat.name;
                 return (
                   <button
@@ -583,7 +596,11 @@ export default function CatalogClient({
                         : "bg-surface-container-lowest text-on-surface-variant hover:bg-secondary-container/20 border border-primary-container/25"
                     }`}
                   >
-                    <span>{cat.icon}</span>
+                    {cat.icon && (cat.icon.startsWith('http') || cat.icon.startsWith('data:')) ? (
+                      <img src={cat.icon} alt="" className="w-5 h-5 object-cover rounded-[4px] shrink-0" />
+                    ) : (
+                      <span>{cat.icon}</span>
+                    )}
                     <span>{cat.name}</span>
                     <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/25 text-white" : "bg-primary-container/20 text-on-surface-variant"}`}>
                       {cat.count}
@@ -923,8 +940,6 @@ export default function CatalogClient({
                       <ScrollReveal key={product.id} delay={Math.min((i % 6) + 1, 6)}>
                         <ProductCard
                           product={product}
-                          isFavorite={!!favorites[product.id]}
-                          onToggleFavorite={toggleFavorite}
                         />
                       </ScrollReveal>
                     ))}

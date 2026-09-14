@@ -11,8 +11,13 @@ import {
   MdVisibility,
   MdVisibilityOff,
   MdRefresh,
+  MdRemove,
 } from 'react-icons/md';
-import { toggleProductActiveAction, deleteProductAction } from '@/src/actions/admin/products';
+import {
+  toggleProductActiveAction,
+  deleteProductAction,
+  adjustProductStockAction,
+} from '@/src/actions/admin/products';
 
 interface ProductItem {
   id: string;
@@ -87,6 +92,23 @@ export default function AdminProductsClient({
         }
       } catch (err: any) {
         alert(err.message || 'Error al cambiar estado');
+      }
+    });
+  };
+
+  const handleAdjustStock = (id: string, delta: number) => {
+    startTransition(async () => {
+      try {
+        const res = await adjustProductStockAction(id, delta);
+        if (res.success) {
+          setProducts((prev) =>
+            prev.map((p) => (p.id === id ? { ...p, stock: res.stock! } : p))
+          );
+        } else {
+          alert(res.error || 'Error al ajustar stock');
+        }
+      } catch (err: any) {
+        alert(err.message || 'Error al ajustar stock');
       }
     });
   };
@@ -231,19 +253,44 @@ export default function AdminProductsClient({
                       )}
                     </td>
                     <td className="px-3.5 py-3">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-[4px] border ${
-                          product.stock > 3
-                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                            : product.stock > 0
-                            ? 'bg-amber-50 text-amber-800 border-amber-200'
-                            : 'bg-rose-50 text-rose-800 border-rose-200'
-                        }`}
-                      >
-                        {product.stock} {product.stock === 1 ? 'unidad' : 'unidades'}
-                      </span>
+                      <div className="inline-flex items-center gap-0.5 bg-stone-50 border border-stone-200 rounded-[6px] overflow-hidden">
+                        <button
+                          onClick={() => handleAdjustStock(product.id, -1)}
+                          disabled={isPending || product.stock <= 0}
+                          className="px-1.5 py-1 text-stone-500 hover:text-rose-700 hover:bg-rose-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          title="Restar 1 unidad"
+                        >
+                          <MdRemove className="text-sm" />
+                        </button>
+                        <span
+                          className={`px-1.5 py-0.5 text-[11px] font-bold min-w-[2rem] text-center border-x border-stone-200 ${
+                            product.stock > 3
+                              ? 'text-emerald-800 bg-emerald-50/50'
+                              : product.stock > 0
+                              ? 'text-amber-800 bg-amber-50/50'
+                              : 'text-rose-800 bg-rose-50/50'
+                          }`}
+                          title={`${product.stock} ${product.stock === 1 ? 'pieza' : 'piezas'} disponibles`}
+                        >
+                          {product.stock}
+                        </span>
+                        <button
+                          onClick={() => handleAdjustStock(product.id, 1)}
+                          disabled={isPending}
+                          className="px-1.5 py-1 text-stone-500 hover:text-emerald-700 hover:bg-emerald-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          title="Sumar 1 unidad"
+                        >
+                          <MdAdd className="text-sm" />
+                        </button>
+                      </div>
                     </td>
-                    <td className="px-3.5 py-3 text-stone-600 font-medium">{product.size}</td>
+                    <td className="px-3.5 py-3">
+                      <div className="text-stone-700 font-medium">{product.size}</div>
+                      <div className="text-[10px] text-amber-900 font-semibold flex items-center gap-0.5">
+                        <span>🧶</span>
+                        <span>{(product as any).craftingDays || '5-10 días hábiles'}</span>
+                      </div>
+                    </td>
                     <td className="px-3.5 py-3">
                       <button
                         onClick={() => handleToggleActive(product.id, product.isActive)}
@@ -274,6 +321,13 @@ export default function AdminProductsClient({
                     </td>
                     <td className="px-3.5 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
+                        <Link
+                          href={`/admin/productos/${product.id}`}
+                          className="p-1.5 rounded-[6px] text-stone-500 hover:text-amber-800 hover:bg-amber-50 transition-colors"
+                          title="Editar producto e imágenes"
+                        >
+                          <MdEdit className="text-base" />
+                        </Link>
                         <button
                           onClick={() => handleDeleteProduct(product.id, product.name)}
                           disabled={isPending}

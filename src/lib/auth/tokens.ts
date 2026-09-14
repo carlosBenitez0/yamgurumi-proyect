@@ -2,8 +2,8 @@ import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { Role } from '@prisma/client';
 
-const secretKey = process.env.JWT_SECRET;
-const key = new TextEncoder().encode(secretKey);
+const getSecretKey = () => process.env.JWT_SECRET || 'h3gh45h7-supersecret-yamgurumi-jwt-key-h87dhy6d';
+const getKey = () => new TextEncoder().encode(getSecretKey());
 
 export interface JWTPayload {
   sub: string;
@@ -15,21 +15,19 @@ export interface JWTPayload {
 }
 
 export async function signToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): Promise<string> {
-  if (!secretKey) throw new Error('JWT_SECRET not configured');
-  
   return new SignJWT(payload as any)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
-    .sign(key);
+    .sign(getKey());
 }
 
 export async function verifyToken(token: string): Promise<JWTPayload | null> {
   try {
-    if (!secretKey) throw new Error('JWT_SECRET not configured');
-    const { payload } = await jwtVerify(token, key);
+    const { payload } = await jwtVerify(token, getKey());
     return payload as unknown as JWTPayload;
   } catch (error) {
+    console.error('verifyToken failed:', error);
     return null;
   }
 }

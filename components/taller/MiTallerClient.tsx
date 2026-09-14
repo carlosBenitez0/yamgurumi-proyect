@@ -82,9 +82,10 @@ export interface MiTallerClientProps {
     favorites?: string[];
   };
   logoutAction: () => Promise<void>;
+  whatsappTemplates?: Record<string, string>;
 }
 
-export default function MiTallerClient({ user, logoutAction }: MiTallerClientProps) {
+export default function MiTallerClient({ user, logoutAction, whatsappTemplates }: MiTallerClientProps) {
   const [activeTab, setActiveTab] = useState<"pedidos" | "favoritos" | "beneficios" | "direcciones" | "perfil">("pedidos");
 
   // Conectar con Store de Favoritos & Carrito
@@ -718,17 +719,25 @@ export default function MiTallerClient({ user, logoutAction }: MiTallerClientPro
 
                         {/* Botón WhatsApp de Consulta de Avances */}
                         <div className="flex justify-end pt-2">
-                          <a
-                            href={`https://api.whatsapp.com/send?phone=50377311064&text=${encodeURIComponent(
-                              `¡Hola Yamgurumi! Quisiera consultar el estado y los avances de mi encargo #${order.id.slice(-6).toUpperCase()}. ¿Cómo va la elaboración de mi amigurumi?`
-                            )}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#075e54] hover:bg-[#054f47] text-white text-xs font-bold transition-all tactile-press shadow-sm"
-                          >
-                            <MdChat className="text-base" />
-                            <span>Consultar Avances en WhatsApp</span>
-                          </a>
+                          {(() => {
+                            const defaultMsg = `¡Hola Yamgurumi! 🧶 Quisiera consultar el estado de mi pedido #{pedido_id} a nombre de {nombre} (Total: \${total}). ¡Muchas gracias!`;
+                            const tpl = whatsappTemplates?.wa_tpl_workshop_status || defaultMsg;
+                            const text = tpl
+                              .replaceAll('{pedido_id}', order.id.slice(-6).toUpperCase())
+                              .replaceAll('{nombre}', user.name || 'Cliente')
+                              .replaceAll('{total}', order.total.toFixed(2));
+                            return (
+                              <a
+                                href={`https://api.whatsapp.com/send?phone=50377311064&text=${encodeURIComponent(text)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#075e54] hover:bg-[#054f47] text-white text-xs font-bold transition-all tactile-press shadow-sm"
+                              >
+                                <MdChat className="text-base" />
+                                <span>Consultar Avances en WhatsApp</span>
+                              </a>
+                            );
+                          })()}
                         </div>
                       </div>
                     );
@@ -1091,7 +1100,7 @@ export default function MiTallerClient({ user, logoutAction }: MiTallerClientPro
                       </li>
                       <li className="flex items-start gap-2">
                         <MdCheckCircle className="text-secondary text-base shrink-0 mt-0.5" />
-                        <span><strong>Tiempos de Entrega:</strong> 24-48h en San Salvador y A.M., 2-4 días en Departamentos.</span>
+                        <span><strong>Tiempos de Entrega:</strong> 1-2 días en áreas metropolitanas, 2-4 días en Departamentos. Coordinamos los detalles por WhatsApp.</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <MdCheckCircle className="text-secondary text-base shrink-0 mt-0.5" />
@@ -1577,7 +1586,7 @@ export default function MiTallerClient({ user, logoutAction }: MiTallerClientPro
                   name="zone"
                   defaultValue={editingAddress?.zone || ""}
                   required
-                  placeholder="Ej. Col. Escalón, San Salvador"
+                  placeholder="Ej. Colonia Santa Rosa, San Salvador"
                   className="w-full px-4 py-3 rounded-2xl bg-surface-container-lowest border border-outline-variant/40 text-on-surface font-body text-sm focus:ring-2 focus:ring-secondary outline-none"
                 />
               </div>

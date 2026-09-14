@@ -2,6 +2,7 @@ import prisma from '@/src/lib/prisma';
 import { getAuthCookie, verifyToken } from '@/src/lib/auth/tokens';
 import { logoutAction } from '@/src/actions/auth/logout';
 import { redirect } from 'next/navigation';
+import { getWhatsAppTemplatesMap } from '@/src/lib/whatsappTemplatesServer';
 import MiTallerClient from '@/components/taller/MiTallerClient';
 
 // Re-evaluar página con el esquema actualizado de Prisma (campos image y favorites)
@@ -12,6 +13,8 @@ export default async function MiTallerPage() {
 
   const payload = await verifyToken(token);
   if (!payload) redirect('/auth/login');
+
+  const whatsappTemplates = await getWhatsAppTemplatesMap();
 
   const user = await prisma.user.findUnique({
     where: { id: payload.sub },
@@ -123,5 +126,5 @@ export default async function MiTallerPage() {
     favorites: user.favorites.map((f) => f.productId),
   };
 
-  return <MiTallerClient user={clientUserData} logoutAction={logoutAction} />;
+  return <MiTallerClient user={clientUserData} logoutAction={logoutAction} whatsappTemplates={whatsappTemplates} />;
 }

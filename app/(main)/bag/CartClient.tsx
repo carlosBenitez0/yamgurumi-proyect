@@ -8,6 +8,8 @@ import {
   MdDeleteOutline,
   MdShoppingBag,
   MdConfirmationNumber,
+  MdLocalShipping,
+  MdEdit,
 } from "react-icons/md";
 import {
   useCartStore,
@@ -15,11 +17,12 @@ import {
   selectSubtotal,
   selectDiscountAmount,
   selectTotal,
+  BASE_OPTIONS_INFO,
+  type BaseType,
 } from "@/lib/cart-store";
 import {
   buildWhatsAppLink,
   SHIPPING,
-  DELIVERY_ZONES,
 } from "@/lib/cart-whatsapp";
 import QtyStepper from "@/components/cart/QtyStepper";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
@@ -53,7 +56,7 @@ interface DeliveryForm {
 const EMPTY_FORM: DeliveryForm = {
   name: "",
   phone: "",
-  zone: "San Salvador",
+  zone: "",
   note: "",
 };
 
@@ -86,14 +89,24 @@ function PriceTag({ total }: { total: number }) {
 
 /* ── Página ────────────────────────────────────────────── */
 
-export default function CartClient() {
+interface CartClientProps {
+  shippingNote?: string;
+  shippingFlatRate?: number;
+}
+
+export default function CartClient({
+  shippingNote,
+  shippingFlatRate = 3.50,
+}: CartClientProps = {}) {
   const items = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clearCart);
   const removeItem = useCartStore((s) => s.removeItem);
+  const toggleItemBase = useCartStore((s) => s.toggleItemBase);
   const count = useCartStore(selectCount);
   const subtotal = useCartStore(selectSubtotal);
 
   const discountCode = useCartStore((s) => s.discountCode);
+  const discountCouponId = useCartStore((s) => s.discountCouponId);
   const discountPercent = useCartStore((s) => s.discountPercent);
   const applyDiscount = useCartStore((s) => s.applyDiscount);
   const removeDiscount = useCartStore((s) => s.removeDiscount);
@@ -102,7 +115,7 @@ export default function CartClient() {
 
   const [form, setForm] = useState<DeliveryForm>(EMPTY_FORM);
   const [errors, setErrors] = useState<
-    Partial<Record<"name" | "phone", string>>
+    Partial<Record<"name" | "phone" | "zone" | "stock", string>>
   >({});
   const [sent, setSent] = useState(false);
   const [isClearOpen, setIsClearOpen] = useState(false);
@@ -141,7 +154,7 @@ export default function CartClient() {
     try {
       const result = await applyDiscountAction(codeToApply);
       if (result.success && result.percent !== undefined) {
-        applyDiscount(result.code!, result.percent);
+        applyDiscount(result.code!, result.percent, result.couponId);
         setCouponState({
           loading: false,
           success: `¡Cupón ${result.code} aplicado! (-${result.percent}%) 🎉`,
@@ -170,13 +183,13 @@ export default function CartClient() {
   };
 
   const waLink = useMemo(
-    () => buildWhatsAppLink(items, form, discountCode, discountPercent),
-    [items, form, discountCode, discountPercent],
+    () => buildWhatsAppLink(items, form, discountCode, discountPercent, undefined, discountCouponId),
+    [items, form, discountCode, discountPercent, discountCouponId],
   );
 
   const setField = (key: keyof DeliveryForm, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
-    if (key === "name" || key === "phone") {
+    if (key === "name" || key === "phone" || key === "zone") {
       setErrors((prev) => ({ ...prev, [key]: undefined }));
     }
   };
@@ -189,6 +202,8 @@ export default function CartClient() {
       nextErrors.phone = "Necesitamos tu teléfono para coordinar la entrega.";
     else if (!isValidPhone(form.phone))
       nextErrors.phone = "Revisa el número: 8 dígitos, empieza con 2, 6 o 7.";
+    if (!form.zone.trim())
+      nextErrors.zone = "Indica tu zona o departamento para la entrega.";
 
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
@@ -205,8 +220,8 @@ export default function CartClient() {
       return;
     }
 
-    // Guardar el pedido en la base de datos (con revalidación de /mi-taller)
-    await createOrderAction({
+    // Guardar el pedido en la base de datos (descuenta stock y registra items)
+    const result = await createOrderAction({
       phone: form.phone.trim(),
       zone: form.zone,
       note: form.note.trim() || undefined,
@@ -215,7 +230,22 @@ export default function CartClient() {
       discountCode: discountCode || null,
       total,
       whatsappUrl: waLink,
+      items: items.map((i) => ({
+        productId: i.productId || i.id.split("-")[0],
+        quantity: i.quantity,
+        hasBase: !!i.hasBase,
+        baseType: i.baseType || (i.hasBase ? "standard" : "none"),
+        price: i.price,
+      })),
     });
+
+    if (!result.success) {
+      setErrors((prev) => ({
+        ...prev,
+        stock: result.error || "No se pudo registrar el pedido.",
+      }));
+      return;
+    }
 
     window.open(waLink, "_blank", "noopener,noreferrer");
     setSent(true);
@@ -303,56 +333,102 @@ export default function CartClient() {
           {/* Panel izquierdo: las piezas */}
           <section aria-label="Piezas de tu pedido">
             <ul className="flex flex-col gap-3">
-              {items.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex gap-3 bg-surface-container-lowest rounded-2xl border border-outline-variant/15 p-3 sm:p-4 sm:rounded-3xl shadow-card"
-                >
-                  <Link
-                    href={`/producto/${item.slug}`}
-                    className="relative w-16 h-16 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden bg-surface-container flex-shrink-0 focus-ring"
-                    aria-label={`Ver ${item.name}`}
+              {items.map((item) => {
+                const bType: BaseType = item.baseType || (item.hasBase ? "standard" : "none");
+                const bInfo = BASE_OPTIONS_INFO[bType];
+
+                return (
+                  <li
+                    key={item.id}
+                    className="relative flex gap-3.5 sm:gap-5 bg-surface-container-lowest/90 backdrop-blur-xs rounded-3xl border border-outline-variant/15 p-3.5 sm:p-5 shadow-card hover:shadow-card-hover hover:border-primary-container/30 transition-all duration-300 group"
                   >
-                    <Image
-                      src={item.imageUrl}
-                      alt={item.name}
-                      fill
-                      sizes="(min-width: 640px) 96px, 64px"
-                      className="object-cover"
-                    />
-                  </Link>
+                    <Link
+                      href={`/producto/${item.slug}`}
+                      className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-surface-container flex-shrink-0 focus-ring shadow-2xs group-hover:shadow-md transition-all ring-1 ring-black/5 dark:ring-white/10"
+                      aria-label={`Ver ${item.name}`}
+                    >
+                      <Image
+                        src={item.imageUrl}
+                        alt={item.name}
+                        fill
+                        sizes="(min-width: 640px) 112px, 80px"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                      />
+                    </Link>
 
-                  <div className="flex-1 min-w-0 flex flex-col">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <Link
-                          href={`/producto/${item.slug}`}
-                          className="font-headline text-body sm:text-headline-sm font-semibold text-on-surface hover:text-secondary transition-colors leading-snug focus-ring"
-                        >
-                          {item.name}
-                        </Link>
-                        <p className="text-xs sm:text-body-sm text-on-surface-variant font-body mt-0.5">
-                          ${item.price.toFixed(2)} c/u
-                        </p>
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                      <div>
+                        {/* Fila Superior: Nombre + Botón Eliminar */}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <Link
+                              href={`/producto/${item.slug}`}
+                              className="font-headline text-body-lg sm:text-headline-sm font-bold text-on-surface hover:text-secondary transition-colors leading-snug focus-ring block truncate"
+                            >
+                              {item.name}
+                            </Link>
+                            <p className="text-xs sm:text-body-sm text-on-surface-variant/70 font-body mt-0.5 font-medium">
+                              ${item.price.toFixed(2)} c/u
+                            </p>
+                          </div>
+
+                          <button
+                            onClick={() => removeItem(item.id)}
+                            className="w-8 h-8 rounded-full bg-surface-container-high/40 hover:bg-error/10 text-on-surface-variant/70 hover:text-error transition-all flex items-center justify-center flex-shrink-0 focus-ring active:scale-95 -mt-0.5 -mr-0.5"
+                            aria-label={`Quitar ${item.name} del pedido`}
+                            title="Quitar de la bolsa"
+                          >
+                            <MdClose className="text-[18px]" />
+                          </button>
+                        </div>
+
+                        {/* Badges / Opción de base + Stock */}
+                        <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                          <button
+                            type="button"
+                            onClick={() => toggleItemBase(item.id)}
+                            className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full border transition-all cursor-pointer ${
+                              bType !== "none"
+                                ? "bg-secondary-container/40 hover:bg-secondary-container/70 text-secondary border-secondary/30 shadow-2xs"
+                                : "bg-surface-container-high/60 hover:bg-surface-container-high text-on-surface-variant/80 hover:text-on-surface border-outline-variant/20 shadow-2xs"
+                            }`}
+                            title="Haz clic para alternar: Sin base ➔ Normal (+$1.00) ➔ Grande (+$1.50)"
+                          >
+                            <span>{bType !== "none" ? `🪵 ${bInfo.label}` : "Sin base"}</span>
+                            <MdEdit className="text-[11px] opacity-60 flex-shrink-0" />
+                          </button>
+
+                          {/* Insignia de Disponibilidad en Bolsa */}
+                          {item.stock !== undefined && item.stock <= 0 ? (
+                            <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-amber-500/10 text-amber-900 dark:text-amber-300 border border-amber-500/20">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" aria-hidden="true" />
+                              <span>Se teje bajo encargo ({item.craftingDays || "5-10 días"})</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-900 dark:text-emerald-300 border border-emerald-500/20">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" aria-hidden="true" />
+                              <span>Entrega Inmediata</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <button
-                        onClick={() => removeItem(item.id)}
-                        className="w-10 h-10 flex items-center justify-center -m-1.5 hover:bg-error-container/40 rounded-full text-on-surface-variant hover:text-error transition-colors focus-ring flex-shrink-0"
-                        aria-label={`Quitar ${item.name} del pedido`}
-                      >
-                        <MdClose className="text-[16px] sm:text-[18px]" />
-                      </button>
-                    </div>
 
-                    <div className="flex items-center justify-between mt-auto pt-2 sm:pt-3">
-                      <QtyStepper id={item.id} qty={item.quantity} />
-                      <span className="font-headline text-headline-sm sm:text-headline-md font-bold text-primary tabular-nums">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </span>
+                      {/* Fila Inferior: Contador de Cantidad + Subtotal */}
+                      <div className="flex items-center justify-between gap-3 mt-3 pt-2.5 border-t border-outline-variant/10">
+                        <QtyStepper id={item.id} qty={item.quantity} />
+                        <div className="text-right">
+                          <span className="text-[10px] uppercase font-bold text-on-surface-variant/60 tracking-wider block sm:hidden">
+                            Subtotal
+                          </span>
+                          <span className="font-headline text-headline-sm sm:text-headline-md font-bold text-primary tabular-nums tracking-tight">
+                            ${(item.price * item.quantity).toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           </section>
 
@@ -387,14 +463,42 @@ export default function CartClient() {
                 </div>
               )}
 
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between mt-2.5">
                 <span className="text-body-sm text-on-surface-variant font-body">
-                  Envío
+                  Envío (Tarifa estimada base)
                 </span>
-                <span className="text-body-sm text-on-surface-variant font-body text-right max-w-[180px]">
-                  {SHIPPING.note}
+                <span className="text-body-sm font-semibold text-on-surface font-body text-right">
+                  ${shippingFlatRate.toFixed(2)} USD *
                 </span>
               </div>
+
+              {/* Tarjeta destacada de aviso de tarifa de envío variable */}
+              <div className="mt-3 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-xs font-body text-on-surface-variant flex items-start gap-2.5 shadow-2xs">
+                <MdLocalShipping className="text-base text-amber-800 shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <span className="font-bold text-amber-900 block text-xs">
+                    Tarifa de envío estimada
+                  </span>
+                  <span className="text-[11.5px] leading-relaxed text-on-surface-variant block mt-0.5">
+                    {shippingNote || '* La tarifa de envío es estimada ($3.50 base) y puede variar según la zona o municipio de entrega en El Salvador.'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Aviso si la bolsa contiene piezas a elaborar bajo encargo */}
+              {items.some((i) => i.stock !== undefined && i.stock <= 0) && (
+                <div className="mt-3.5 p-3 rounded-2xl bg-tertiary-container/20 border border-tertiary/30 text-xs font-body text-on-surface-variant flex items-start gap-2.5">
+                  <span className="text-base shrink-0 mt-0.5">🧶</span>
+                  <div>
+                    <span className="font-bold text-tertiary block">
+                      Elaboración Bajo Encargo
+                    </span>
+                    <span>
+                      Tu pedido contiene piezas que la artesana tejerá especialmente para ti. Tiempo estimado de entrega: 5 a 10 días hábiles.
+                    </span>
+                  </div>
+                </div>
+              )}
 
               <div className="stitch-divider my-4" aria-hidden="true" />
 
@@ -580,18 +684,22 @@ export default function CartClient() {
                   >
                     Zona de entrega
                   </label>
-                  <select
+                  <input
                     id="cart-zone"
+                    type="text"
                     value={form.zone}
                     onChange={(e) => setField("zone", e.target.value)}
-                    className={inputClasses}
-                  >
-                    {DELIVERY_ZONES.map((z) => (
-                      <option key={z} value={z}>
-                        {z}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="Ej. San Salvador, Santa Ana, La Libertad..."
+                    className={`${inputClasses} ${errors.zone ? "border-error focus:ring-error" : ""}`}
+                  />
+                  {errors.zone && (
+                    <p className="text-body-xs text-error mt-1">{errors.zone}</p>
+                  )}
+                  {!errors.zone && (
+                    <p className="text-body-xs text-on-surface-variant/70 font-body mt-1">
+                      Envíos a todo El Salvador. Indica tu departamento o municipio.
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -633,6 +741,24 @@ export default function CartClient() {
         </div>
 
         {/* ── Confirmación de envío ─────────────────────── */}
+        {errors.stock && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="mt-8 flex items-start gap-3 bg-tertiary-container/25 border border-tertiary/30 rounded-2xl px-5 py-4"
+          >
+            <span className="text-tertiary text-lg leading-none mt-0.5">⚠</span>
+            <div>
+              <span className="block text-tertiary text-label-md font-bold uppercase tracking-widest font-label">
+                Stock insuficiente
+              </span>
+              <p className="text-body-sm text-on-surface-variant font-body mt-1">
+                {errors.stock}
+              </p>
+            </div>
+          </div>
+        )}
+
         {sent && (
           <div
             role="status"

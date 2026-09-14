@@ -99,8 +99,10 @@ const STATUS_CONFIG: Record<
 
 export default function AdminOrdersClient({
   initialOrders,
+  initialSettings,
 }: {
   initialOrders: OrderData[];
+  initialSettings?: { key: string; value: string }[];
 }) {
   const [orders, setOrders] = useState<OrderData[]>(initialOrders);
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
@@ -217,7 +219,26 @@ export default function AdminOrdersClient({
     const digits = rawPhone.replace(/[^0-9]/g, '');
     const cleanPhone = digits.length === 8 ? `503${digits}` : digits;
 
-    const text = getFormattedMessageText(order, customTracking, overrideStatus);
+    const tplFound = initialSettings?.find((s) => s.key === 'wa_tpl_admin_order_contact')?.value;
+    let text = '';
+    if (tplFound) {
+      const statusLabels: Record<string, string> = {
+        PENDING: 'Pendiente de Pago',
+        SHIPPED: 'Enviado',
+        DELIVERED: 'Entregado Exitosamente',
+        CANCELLED: 'Cancelado',
+      };
+      const st = overrideStatus || order.status;
+      const customerName = order.email.split('@')[0];
+      text = tplFound
+        .replaceAll('{nombre}', customerName)
+        .replaceAll('{pedido_id}', order.id)
+        .replaceAll('{total}', order.total.toFixed(2))
+        .replaceAll('{estado}', statusLabels[st] || st);
+    } else {
+      text = getFormattedMessageText(order, customTracking, overrideStatus);
+    }
+
     return `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(text)}`;
   };
 
@@ -400,7 +421,28 @@ export default function AdminOrdersClient({
                   return (
                     <tr key={order.id} className="hover:bg-stone-50/80 transition-colors">
                       <td className="px-3.5 py-3 font-mono font-bold text-stone-800">
-                        <div>#{order.id}</div>
+                        <div className="flex items-center gap-1.5">
+                          <span>#{order.id}</span>
+                          {order.items.some(
+                            (i) =>
+                              i.size?.toLowerCase().includes('encargo') ||
+                              i.size?.toLowerCase().includes('elaboración')
+                          ) ? (
+                            <span
+                              className="px-1.5 py-0.5 rounded-[4px] bg-amber-100/90 text-amber-800 border border-amber-300 text-[9px] font-sans font-extrabold uppercase tracking-wider"
+                              title="Contiene ítems a elaborar bajo encargo"
+                            >
+                              🧶 Encargo
+                            </span>
+                          ) : (
+                            <span
+                              className="px-1.5 py-0.5 rounded-[4px] bg-emerald-100/90 text-emerald-800 border border-emerald-300 text-[9px] font-sans font-extrabold uppercase tracking-wider"
+                              title="Venta de stock inmediato"
+                            >
+                              ⚡ Stock
+                            </span>
+                          )}
+                        </div>
                         <div className="text-[10px] font-normal text-stone-400 font-sans">{formattedDate}</div>
                       </td>
 
@@ -532,7 +574,7 @@ export default function AdminOrdersClient({
                       />
                       <div>
                         <div className="font-bold text-stone-800">{item.name}</div>
-                        <div className="text-[11px] text-stone-500">Tamaño: {item.size || 'Mediano'}</div>
+                        <div className="text-[11px] text-stone-500">Opción: {item.size || 'Mediano'}</div>
                       </div>
                     </div>
                     <div className="text-right">

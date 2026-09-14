@@ -23,10 +23,11 @@ const inputClasses =
 interface ContactForm {
   name: string;
   subject: string;
+  baseOption: string;
   message: string;
 }
 
-const EMPTY_FORM: ContactForm = { name: "", subject: "", message: "" };
+const EMPTY_FORM: ContactForm = { name: "", subject: "", baseOption: "base", message: "" };
 
 /* ── Un punto del hilo ──────────────────────────────────── */
 
@@ -47,7 +48,11 @@ function StitchDot({ lit }: { lit: boolean }) {
 
 /* ── Página ────────────────────────────────────────────── */
 
-export default function ContactClient() {
+export default function ContactClient({
+  whatsappTemplates,
+}: {
+  whatsappTemplates?: Record<string, string>;
+} = {}) {
   const searchParams = useSearchParams();
 
   // El motivo puede llegar preseleccionado por URL (?subject=custom),
@@ -76,20 +81,24 @@ export default function ContactClient() {
     const sparklesEmoji = String.fromCodePoint(0x2728);
     const yarnEmoji = String.fromCodePoint(0x1F9F6);
 
-    const text = [
-      `${sparklesEmoji} *CONSULTA DESDE LA WEB - YAMGURUMI* ${yarnEmoji}`,
-      "",
-      `*Motivo:* ${SUBJECTS[form.subject] ?? ""}`,
-      `*Nombre:* ${form.name.trim()}`,
-      "",
-      form.message.trim(),
-      "",
-      "—Enviado desde el sitio web de Yamgurumi",
-    ]
-      .join("\n")
-      .replace(/\n{3,}/g, "\n\n");
-    return `https://api.whatsapp.com/send?phone=50377311064&text=${encodeURIComponent(text)}`;
-  }, [form]);
+    const baseOptionLabels: Record<string, string> = {
+      standard: "Con Base Normal 🪵 (+ $1.00 USD)",
+      large: "Con Base Grande 🪵 (+ $1.50 USD)",
+      nobase: "Sin base",
+      base: "Con base de madera 🪵",
+      na: "A consultar / No aplica",
+    };
+
+    const defaultMsg = `¡Hola Yamgurumi! 🧶 Mi nombre es {nombre}.\n\nAsunto: {asunto}\n\nMensaje: {mensaje}`;
+    const tpl = whatsappTemplates?.wa_tpl_contact_form || defaultMsg;
+
+    const interpolated = tpl
+      .replaceAll('{nombre}', form.name.trim())
+      .replaceAll('{asunto}', SUBJECTS[form.subject] || 'Consulta General')
+      .replaceAll('{mensaje}', form.message.trim());
+
+    return `https://api.whatsapp.com/send?phone=50377311064&text=${encodeURIComponent(interpolated)}`;
+  }, [form, whatsappTemplates]);
 
   const setField = (
     key: keyof ContactForm,
@@ -267,6 +276,26 @@ export default function ContactClient() {
 
         <div>
           <label
+            htmlFor="contact-base"
+            className="block text-label-md uppercase tracking-widest text-on-surface-variant font-bold font-label mb-1.5"
+          >
+            Base de exhibición <span className="text-on-surface-variant/70 font-normal font-body">(opcional)</span>
+          </label>
+          <select
+            id="contact-base"
+            value={form.baseOption}
+            onChange={(e) => setField("baseOption", e.target.value)}
+            className={inputClasses}
+          >
+            <option value="nobase">Sin base ($0.00)</option>
+            <option value="standard">Con Base Normal 🪵 (+ $1.00 USD)</option>
+            <option value="large">Con Base Grande 🪵 (+ $1.50 USD)</option>
+            <option value="na">A consultar / No aplica</option>
+          </select>
+        </div>
+
+        <div>
+          <label
             htmlFor="contact-message"
             className="block text-label-md uppercase tracking-widest text-on-surface-variant font-bold font-label mb-1.5"
           >
@@ -304,7 +333,13 @@ export default function ContactClient() {
           </p>
           <div className="stitch-tag mt-3 max-w-full px-5 py-4 font-body text-body-sm leading-relaxed text-on-surface-variant">
             <p className="whitespace-pre-wrap">
-              {`*Mensaje para Yamgurumi*\nMotivo: ${SUBJECTS[form.subject] ?? ""}\nNombre: ${form.name.trim()}`}
+              {`*Mensaje para Yamgurumi*\nMotivo: ${SUBJECTS[form.subject] ?? ""}\nNombre: ${form.name.trim()}\nBase: ${
+                form.baseOption === "base"
+                  ? "Con base de madera 🪵"
+                  : form.baseOption === "nobase"
+                    ? "Sin base"
+                    : "A consultar"
+              }`}
             </p>
             {form.message.trim() && (
               <p className="whitespace-pre-wrap mt-2">{form.message.trim()}</p>

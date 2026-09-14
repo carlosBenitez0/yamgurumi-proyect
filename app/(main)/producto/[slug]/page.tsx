@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getPublicProducts, getPublicProductBySlug } from "@/src/lib/publicProducts";
+import { getWhatsAppTemplatesMap } from "@/src/lib/whatsappTemplatesServer";
 import ProductDetailClient from "./ProductDetailClient";
 
 interface Props {
@@ -24,6 +25,8 @@ export default async function ProductPage({ params }: Props) {
   if (!product) notFound();
 
   const allProducts = await getPublicProducts();
+  const whatsappTemplates = await getWhatsAppTemplatesMap();
+
   const related = allProducts
     .filter((p) => p.category === product.category && p.id !== product.id)
     .slice(0, 10);
@@ -35,5 +38,5 @@ export default async function ProductPage({ params }: Props) {
     related.push(...extra);
   }
 
-  return <ProductDetailClient product={product} related={related} />;
+  return <ProductDetailClient product={product} related={related} whatsappTemplates={whatsappTemplates} />;
 }

@@ -7,6 +7,7 @@ import { MdStar, MdStarBorder, MdFavorite, MdFavoriteBorder, MdAddShoppingCart, 
 import type { Product } from "@/data/products";
 import { useCartStore } from "@/lib/cart-store";
 import { useFavoritesStore } from "@/src/store/useFavoritesStore";
+import { useAuth } from "@/src/lib/auth/auth-context";
 
 /* ── Tag color map ──────────────────────────────────────── */
 
@@ -68,6 +69,8 @@ const ProductCard = memo(function ProductCard({
   const addItem = useCartStore((s) => s.addItem);
   const storeIsFav = useFavoritesStore((s) => s.favoritesMap[product.id] || s.favoritesMap[product.slug]);
   const storeToggleFav = useFavoritesStore((s) => s.toggleFavorite);
+  const { isAuthenticated, redirectToLogin } = useAuth();
+  const isLoggedIn = isAuthenticated;
   const effectiveIsFavorite = isFavorite || !!storeIsFav;
 
   const [justAdded, setJustAdded] = useState(false);
@@ -80,9 +83,13 @@ const ProductCard = memo(function ProductCard({
     [],
   );
 
-  const handleFav = (e: React.MouseEvent) => {
+  const handleFav = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!isLoggedIn) {
+      redirectToLogin();
+      return;
+    }
     if (onToggleFavorite) {
       onToggleFavorite(product.id);
     }
@@ -154,10 +161,19 @@ const ProductCard = memo(function ProductCard({
             />
             {TagBadge}
 
-            {/* Insignia Artesanal abajo a la izquierda */}
-            <div className="absolute bottom-2.5 left-2.5 bg-surface-container-lowest/85 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-primary-container/20 shadow-sm text-[10px] font-bold text-on-surface hidden sm:flex items-center gap-1">
-              <span>🧶</span>
-              <span>Artesanal</span>
+            {/* Insignia Artesanal / Bajo Encargo abajo a la izquierda */}
+            <div className="absolute bottom-2.5 left-2.5 bg-surface-container-lowest/90 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-primary-container/20 shadow-sm text-[10px] font-bold text-on-surface flex items-center gap-1">
+              {product.stock !== undefined && product.stock <= 0 ? (
+                <>
+                  <span className="text-tertiary">🧶</span>
+                  <span className="text-tertiary">Bajo encargo</span>
+                </>
+              ) : (
+                <>
+                  <span>🧶</span>
+                  <span>Artesanal</span>
+                </>
+              )}
             </div>
           </div>
 

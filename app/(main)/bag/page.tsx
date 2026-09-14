@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getPublicStoreSettings } from "@/src/lib/storeSettings";
 import CartClient from "./CartClient";
 
 export const metadata: Metadata = {
@@ -7,6 +8,14 @@ export const metadata: Metadata = {
     "Revisa tu pedido de amigurumis artesanales y envíalo por WhatsApp. Hecho a mano, tejido con amor.",
 };
 
-export default function CartPage() {
-  return <CartClient />;
+export const revalidate = 0;
+
+export default async function CartPage() {
+  const storeSettings = await getPublicStoreSettings();
+  return (
+    <CartClient
+      shippingNote={storeSettings.shippingNote}
+      shippingFlatRate={storeSettings.shippingFlatRate}
+    />
+  );
 }

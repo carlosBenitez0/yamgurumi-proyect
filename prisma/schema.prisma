@@ -92,20 +92,27 @@ model NewsletterSubscriber {
 }
 
 model DiscountCode {
-  id                String       @id @default(cuid())
-  code              String       @unique
-  discountType      DiscountType @default(PERCENTAGE)
-  percent           Int          @default(10)
-  amount            Decimal?     @db.Decimal(10, 2)
-  minPurchaseAmount Decimal?     @db.Decimal(10, 2)
+  id                String         @id @default(cuid())
+  code              String
+  discountType      DiscountType   @default(PERCENTAGE)
+  percent           Int            @default(10)
+  amount            Decimal?       @db.Decimal(10, 2)
+  minPurchaseAmount Decimal?       @db.Decimal(10, 2)
   userId            String?
-  user              User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
-  usageLimit        Int          @default(1)
-  usedCount         Int          @default(0)
-  isActive          Boolean      @default(true)
-  startDate         DateTime     @default(now())
+  user              User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  parentCouponId    String?
+  parentCoupon      DiscountCode?  @relation("CouponInstances", fields: [parentCouponId], references: [id], onDelete: Cascade)
+  instances         DiscountCode[] @relation("CouponInstances")
+  usageLimit        Int            @default(1)
+  usedCount         Int            @default(0)
+  isActive          Boolean        @default(true)
+  startDate         DateTime       @default(now())
   expiresAt         DateTime?
-  createdAt         DateTime     @default(now())
+  createdAt         DateTime       @default(now())
+
+  @@index([code])
+  @@index([userId])
+  @@index([parentCouponId])
 }
 
 model Address {
@@ -171,6 +178,7 @@ model Product {
   categoryId   String
   category     Category  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   size         String    @default("Mediano")
+  craftingDays String    @default("5-10 días hábiles")
   description  String    @db.Text
   materials    String    @db.Text
   tags         String[]  @default([])

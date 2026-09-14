@@ -357,26 +357,9 @@ export default function OurHistoryPage() {
                 </Station>
 
                 <Station number={4} title="El canasto" delay={2}>
-                  <p>
-                    Cuando el amigurumi está listo, hace su último descanso en
-                    el canasto antes de salir del taller. De ahí pasa a una
-                    bolsa, y de la bolsa al chat: coordinamos la entrega por
-                    WhatsApp.
+                  <p className="mt-1 text-body-sm text-on-surface-variant/80 font-body">
+                    Hacemos envíos a todo El Salvador 🇸🇻. Coordinamos la entrega directamente por WhatsApp.
                   </p>
-                  <ul className="mt-1 flex flex-wrap gap-2" aria-label="Zonas de entrega">
-                    <li className="rounded-full bg-secondary-container/50 px-3.5 py-1.5 font-label text-label-md font-semibold text-on-secondary-container">
-                      San Salvador
-                    </li>
-                    <li className="rounded-full bg-secondary-container/50 px-3.5 py-1.5 font-label text-label-md font-semibold text-on-secondary-container">
-                      Antiguo Cuscatlán
-                    </li>
-                    <li className="rounded-full bg-secondary-container/50 px-3.5 py-1.5 font-label text-label-md font-semibold text-on-secondary-container">
-                      Santa Tecla
-                    </li>
-                    <li className="rounded-full bg-secondary-container/50 px-3.5 py-1.5 font-label text-label-md font-semibold text-on-secondary-container">
-                      Zona norte
-                    </li>
-                  </ul>
                 </Station>
               </ol>
             </div>
