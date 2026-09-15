@@ -9,6 +9,7 @@ import {
   MdPerson,
 } from "react-icons/md";
 import SearchModal from "@/components/ui/SearchModal";
+import NotificationBell from "@/components/notifications/NotificationBell";
 import { useCartStore, selectCount } from "@/lib/cart-store";
 import type { JWTPayload } from "@/src/lib/auth/tokens";
 
@@ -265,13 +266,15 @@ export default function Navbar({ session }: { session?: JWTPayload | null }) {
               )}
             </button>
 
+            {session && <NotificationBell />}
+
             {session ? (
               <Link
                 href="/mi-taller"
                 className="flex relative p-2.5 hover:bg-secondary-container/50 rounded-full transition-all duration-300 active:scale-95 items-center justify-center focus-ring tactile-press"
                 title="Mi Taller"
               >
-                <MdPerson className="w-[22px] h-[22px] text-secondary" />
+                <MdPerson className="w-5 h-5 text-secondary" />
               </Link>
             ) : (
               <div className="hidden md:flex items-center gap-2 ml-1">

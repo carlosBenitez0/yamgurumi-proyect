@@ -39,6 +39,13 @@ enum CustomOrderStatus {
   CANCELLED
 }
 
+enum NotificationType {
+  COUPON_EXPIRING
+  COUPON_EXPIRED
+  ORDER_STATUS
+  GENERAL
+}
+
 // ===== MODELOS =====
 model User {
   id            String    @id @default(cuid())
@@ -60,6 +67,7 @@ model User {
   reviews       ProductReview[]
   customOrders  CustomOrderRequest[]
   auditLogs     AuditLog[]
+  notifications Notification[]
 }
 
 model Session {
@@ -289,4 +297,20 @@ model Favorite {
   createdAt DateTime @default(now())
 
   @@unique([userId, productId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType @default(GENERAL)
+  title     String
+  message   String           @db.Text
+  link      String?
+  couponId  String?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, isRead])
+  @@index([createdAt])
 }

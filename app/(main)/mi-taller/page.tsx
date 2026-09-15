@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import prisma from '@/src/lib/prisma';
 import { getAuthCookie, verifyToken } from '@/src/lib/auth/tokens';
 import { logoutAction } from '@/src/actions/auth/logout';
@@ -126,5 +127,13 @@ export default async function MiTallerPage() {
     favorites: user.favorites.map((f) => f.productId),
   };
 
-  return <MiTallerClient user={clientUserData} logoutAction={logoutAction} whatsappTemplates={whatsappTemplates} />;
+  return (
+    <Suspense fallback={
+      <div className="min-h-[400px] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <MiTallerClient user={clientUserData} logoutAction={logoutAction} whatsappTemplates={whatsappTemplates} />
+    </Suspense>
+  );
 }

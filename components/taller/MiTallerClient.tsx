@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useRef, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import gsap from "gsap";
@@ -87,6 +88,15 @@ export interface MiTallerClientProps {
 
 export default function MiTallerClient({ user, logoutAction, whatsappTemplates }: MiTallerClientProps) {
   const [activeTab, setActiveTab] = useState<"pedidos" | "favoritos" | "beneficios" | "direcciones" | "perfil">("pedidos");
+  const searchParams = useSearchParams();
+
+  // Cambio inteligente de pestaña según parámetro de URL (ej: /mi-taller?tab=beneficios)
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam && ["pedidos", "favoritos", "beneficios", "direcciones", "perfil"].includes(tabParam)) {
+      setActiveTab(tabParam as any);
+    }
+  }, [searchParams]);
 
   // Conectar con Store de Favoritos & Carrito
   const storeFavoriteProducts = useFavoritesStore((s) => s.favoriteProducts);
@@ -985,45 +995,73 @@ export default function MiTallerClient({ user, logoutAction, whatsappTemplates }
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {user.discountCodes.map((discount) => {
                       const isUsed = discount.usedCount >= discount.usageLimit;
+                      const isExpired = discount.expiresAt && new Date(discount.expiresAt) < new Date();
+                      
+                      const now = new Date();
+                      const daysLeft = discount.expiresAt 
+                        ? Math.ceil((new Date(discount.expiresAt).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) 
+                        : null;
+                      const isExpiringSoon = !isUsed && !isExpired && daysLeft !== null && daysLeft <= 3 && daysLeft >= 0;
+
                       return (
                         <div 
                           key={discount.code} 
                           className={`p-5 rounded-3xl border-2 border-dashed flex items-center justify-between gap-4 shadow-sm transition-all ${
-                            isUsed 
-                              ? "border-outline-variant/30 bg-surface-container-low/50 opacity-70"
-                              : "border-secondary/40 bg-surface-container-lowest hover:border-secondary"
+                            isExpired
+                              ? "border-rose-200 bg-rose-50/30 opacity-80"
+                              : isUsed 
+                                ? "border-outline-variant/30 bg-surface-container-low/50 opacity-70"
+                                : isExpiringSoon
+                                  ? "border-amber-300 bg-amber-50/40 hover:border-amber-400"
+                                  : "border-secondary/40 bg-surface-container-lowest hover:border-secondary"
                           }`}
                         >
                           <div className="space-y-1">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className={`font-mono text-xl font-extrabold tracking-wider ${
-                                isUsed ? "line-through text-on-surface-variant/60" : "text-secondary"
+                                isUsed || isExpired ? "line-through text-on-surface-variant/60" : "text-secondary"
                               }`}>
                                 {discount.code}
                               </span>
                               <span className={`px-2.5 py-0.5 rounded-full text-xs font-extrabold ${
-                                isUsed ? "bg-surface-container-high text-on-surface-variant/60" : "bg-tertiary-container text-on-tertiary-container"
+                                isExpired
+                                  ? "bg-rose-100 text-rose-800"
+                                  : isUsed 
+                                    ? "bg-surface-container-high text-on-surface-variant/60" 
+                                    : "bg-tertiary-container text-on-tertiary-container"
                               }`}>
                                 -{discount.percent}%
                               </span>
+
+                              {isExpiringSoon && (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-200 animate-pulse">
+                                  ⏰ Vence en {daysLeft}d
+                                </span>
+                              )}
                             </div>
                             <p className="text-xs text-on-surface-variant">
-                              {isUsed 
-                                ? "✨ Cupón canjeado con éxito" 
-                                : discount.usageLimit > 1 
-                                  ? `Usado ${discount.usedCount} de ${discount.usageLimit} veces` 
-                                  : "Válido para tu primer pedido (1 solo uso)"}
+                              {isExpired
+                                ? "❌ Este cupón ha expirado"
+                                : isUsed 
+                                  ? "✨ Cupón canjeado con éxito" 
+                                  : discount.usageLimit > 1 
+                                    ? `Usado ${discount.usedCount} de ${discount.usageLimit} veces` 
+                                    : "Válido para tu pedido (1 solo uso)"}
                             </p>
                           </div>
 
-                          {isUsed ? (
-                            <span className="px-3.5 py-2 rounded-full bg-surface-container-high text-on-surface-variant/70 text-xs font-bold border border-outline-variant/20">
+                          {isExpired ? (
+                            <span className="px-3 py-1.5 rounded-full bg-rose-100 text-rose-800 text-xs font-bold border border-rose-200 shrink-0">
+                              Expirado ❌
+                            </span>
+                          ) : isUsed ? (
+                            <span className="px-3.5 py-2 rounded-full bg-surface-container-high text-on-surface-variant/70 text-xs font-bold border border-outline-variant/20 shrink-0">
                               Canjeado 🛍️
                             </span>
                           ) : (
                             <button
                               onClick={() => copyToClipboard(discount.code)}
-                              className="px-4 py-2.5 rounded-full bg-secondary text-white hover:bg-secondary/90 text-xs font-bold transition-all tactile-press flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                              className="px-4 py-2.5 rounded-full bg-secondary text-white hover:bg-secondary/90 text-xs font-bold transition-all tactile-press flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer shrink-0"
                             >
                               <MdContentCopy />
                               <span>{copiedCode === discount.code ? "¡Copiado! 🎉" : "Copiar"}</span>

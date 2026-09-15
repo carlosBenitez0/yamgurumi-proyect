@@ -233,7 +233,7 @@ export default function AdminCouponsClient({
 
           if (res.success && res.coupon) {
             setCoupons((prev) => [res.coupon as CouponData, ...prev]);
-            setSuccessMsg(`¡Plantilla de cupón "${res.coupon.code}" creada con éxito!`);
+            setSuccessMsg(`¡Cupón "${res.coupon.code}" creado con éxito!`);
             setTimeout(() => {
               setIsModalOpen(false);
               resetForm();
@@ -300,7 +300,7 @@ export default function AdminCouponsClient({
   const handleDelete = (id: string, codeName: string, isInstance: boolean) => {
     const msg = isInstance
       ? `¿Eliminar la asignación del cupón "${codeName}" para este usuario en particular?`
-      : `¿Eliminar la plantilla maestra del cupón "${codeName}"?`;
+      : `¿Eliminar el cupón "${codeName}"?`;
 
     if (!confirm(msg)) return;
 
@@ -340,7 +340,7 @@ export default function AdminCouponsClient({
             <span>Gestor de Cupones & Promociones</span>
           </h2>
           <p className="text-xs text-stone-500 max-w-2xl">
-            Crea plantillas maestras de cupones y genera instancias personalizadas asignadas a usuarios específicos con límites de uso independientes.
+            Crea cupones promocionales generales o asigna cupones personalizados a clientes específicos.
           </p>
         </div>
 
@@ -352,7 +352,7 @@ export default function AdminCouponsClient({
           className="px-4 py-2 bg-[#72594e] hover:bg-[#60493f] text-white font-semibold text-xs rounded-[8px] shadow-xs flex items-center gap-1.5 self-start sm:self-auto transition-colors cursor-pointer"
         >
           <MdAdd className="text-base" />
-          <span>Crear Plantilla Maestra</span>
+          <span>Crear Cupón</span>
         </button>
       </div>
 
@@ -368,7 +368,7 @@ export default function AdminCouponsClient({
           }`}
         >
           <MdLayers className="text-base" />
-          <span>Plantillas Maestras ({masterTemplates.length})</span>
+          <span>Cupones Generales ({masterTemplates.length})</span>
         </button>
 
         <button
@@ -397,7 +397,7 @@ export default function AdminCouponsClient({
               onChange={(e) => setSearch(e.target.value)}
               placeholder={
                 activeTab === 'TEMPLATES'
-                  ? 'Buscar plantilla por código (ej: BIENVENIDO, VERANO)...'
+                  ? 'Buscar cupón por código (ej: BIENVENIDO, VERANO)...'
                   : 'Buscar por código o por correo del cliente asignado...'
               }
               className="w-full pl-9 pr-3 py-2 bg-stone-50 border border-stone-200 rounded-[6px] text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-700"
@@ -412,12 +412,12 @@ export default function AdminCouponsClient({
               🎟️
             </div>
             <h3 className="font-headline font-bold text-base text-stone-800">
-              {activeTab === 'TEMPLATES' ? 'No hay plantillas maestras creadas' : 'No hay cupones asignados a clientes'}
+              {activeTab === 'TEMPLATES' ? 'No hay cupones creados' : 'No hay cupones asignados a clientes'}
             </h3>
             <p className="text-xs text-stone-500">
               {activeTab === 'TEMPLATES'
-                ? 'Crea tu primera plantilla de cupón promocional haciendo clic en el botón superior.'
-                : 'Selecciona una plantilla maestra para asignársela a un cliente con reglas personalizadas.'}
+                ? 'Crea tu primer cupón promocional haciendo clic en el botón superior.'
+                : 'Selecciona un cupón para asignárselo a un cliente con reglas personalizadas.'}
             </p>
           </div>
         ) : (
@@ -430,7 +430,7 @@ export default function AdminCouponsClient({
                   {activeTab === 'INSTANCES' ? (
                     <th className="px-3.5 py-2.5">Cliente Asignado</th>
                   ) : (
-                    <th className="px-3.5 py-2.5">Instancias Asignadas</th>
+                    <th className="px-3.5 py-2.5">Clientes Asignados</th>
                   )}
                   <th className="px-3.5 py-2.5">Uso / Límite</th>
                   <th className="px-3.5 py-2.5">Estado</th>
@@ -554,7 +554,7 @@ export default function AdminCouponsClient({
                             type="button"
                             onClick={() => handleOpenEditModal(coupon)}
                             className="p-1.5 text-[#72594e] hover:bg-amber-50 rounded-[6px] transition-colors cursor-pointer"
-                            title={activeTab === 'INSTANCES' ? 'Editar parámetros individuales de este cliente' : 'Editar plantilla maestra'}
+                            title={activeTab === 'INSTANCES' ? 'Editar parámetros individuales de este cliente' : 'Editar cupón'}
                           >
                             <MdEdit className="text-base" />
                           </button>
@@ -590,7 +590,7 @@ export default function AdminCouponsClient({
         )}
       </div>
 
-      {/* MODAL CREAR PLANTILLA MAESTRA O EDITAR */}
+      {/* MODAL CREAR CUPÓN O EDITAR */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white border border-stone-200 rounded-[12px] shadow-xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95 duration-150">
@@ -601,8 +601,8 @@ export default function AdminCouponsClient({
                   {editingCoupon
                     ? editingCoupon.userId
                       ? `Editar Cupón de ${editingCoupon.user?.name || editingCoupon.user?.email || 'Cliente'}`
-                      : 'Editar Plantilla Maestra'
-                    : 'Crear Plantilla Maestra de Cupón'}
+                      : 'Editar Cupón'
+                    : 'Crear Cupón'}
                 </span>
               </h3>
               <button
@@ -735,7 +735,7 @@ export default function AdminCouponsClient({
                   disabled={isPending}
                   className="px-4 py-1.5 bg-[#72594e] hover:bg-[#60493f] text-white rounded-[6px] text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer"
                 >
-                  {isPending ? 'Guardando...' : editingCoupon ? 'Guardar Cambios' : 'Crear Plantilla'}
+                  {isPending ? 'Guardando...' : editingCoupon ? 'Guardar Cambios' : 'Crear Cupón'}
                 </button>
               </div>
             </form>

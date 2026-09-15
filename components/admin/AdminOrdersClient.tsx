@@ -427,19 +427,12 @@ export default function AdminOrdersClient({
                             (i) =>
                               i.size?.toLowerCase().includes('encargo') ||
                               i.size?.toLowerCase().includes('elaboración')
-                          ) ? (
+                          ) && (
                             <span
                               className="px-1.5 py-0.5 rounded-[4px] bg-amber-100/90 text-amber-800 border border-amber-300 text-[9px] font-sans font-extrabold uppercase tracking-wider"
                               title="Contiene ítems a elaborar bajo encargo"
                             >
                               🧶 Encargo
-                            </span>
-                          ) : (
-                            <span
-                              className="px-1.5 py-0.5 rounded-[4px] bg-emerald-100/90 text-emerald-800 border border-emerald-300 text-[9px] font-sans font-extrabold uppercase tracking-wider"
-                              title="Venta de stock inmediato"
-                            >
-                              ⚡ Stock
                             </span>
                           )}
                         </div>
