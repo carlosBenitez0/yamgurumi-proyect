@@ -2,8 +2,12 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const secretKey = process.env.JWT_SECRET;
-const key = new TextEncoder().encode(secretKey);
+const DEFAULT_JWT_SECRET = 'h3gh45h7-supersecret-yamgurumi-jwt-key-h87dhy6d';
+
+function getJwtKey() {
+  const secret = process.env.JWT_SECRET || DEFAULT_JWT_SECRET;
+  return new TextEncoder().encode(secret);
+}
 
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get('auth_token')?.value;
@@ -16,8 +20,7 @@ export async function middleware(request: NextRequest) {
   // Si el usuario ya está autenticado e intenta ir a /auth/login o /auth/register
   if (isAuthRoute && token) {
     try {
-      if (!secretKey) throw new Error('JWT_SECRET missing');
-      const { payload } = await jwtVerify(token, key);
+      const { payload } = await jwtVerify(token, getJwtKey());
       url.pathname = payload.role === 'ADMIN' ? '/admin' : '/';
       url.search = '';
       return NextResponse.redirect(url);
@@ -38,9 +41,7 @@ export async function middleware(request: NextRequest) {
     }
 
     try {
-      if (!secretKey) throw new Error('JWT_SECRET missing');
-      
-      const { payload } = await jwtVerify(token, key);
+      const { payload } = await jwtVerify(token, getJwtKey());
       
       if (isAdminRoute && payload.role !== 'ADMIN') {
         url.pathname = '/';
@@ -53,7 +54,9 @@ export async function middleware(request: NextRequest) {
       response.headers.set('x-user-role', payload.role as string);
       return response;
     } catch (error) {
+      console.error('Middleware JWT verification error:', error);
       url.pathname = '/auth/login';
+      url.searchParams.set('redirect', request.nextUrl.pathname);
       const response = NextResponse.redirect(url);
       response.cookies.delete('auth_token');
       return response;
