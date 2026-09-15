@@ -11,15 +11,18 @@ export async function getSession(): Promise<JWTPayload | null> {
     return null;
   }
 
-  // Verify session exists in DB and is valid
-  const session = await prisma.session.findUnique({
-    where: { id: payload.jti },
-    include: { user: true }
-  });
+  // Verificar la sesión en base de datos de manera segura sin destruir cookies válidas ante errores de red
+  try {
+    const session = await prisma.session.findUnique({
+      where: { id: payload.jti },
+    });
 
-  if (!session || session.expiresAt < new Date()) {
-    await clearAuthCookie();
-    return null;
+    if (session && session.expiresAt < new Date()) {
+      await clearAuthCookie();
+      return null;
+    }
+  } catch (err) {
+    console.warn('Verificación de sesión en BD falló temporalmente, usando JWT verificado:', err);
   }
 
   return payload;

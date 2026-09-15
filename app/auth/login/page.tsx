@@ -19,10 +19,9 @@ function LoginFormContent() {
 
   useEffect(() => {
     if (state?.success) {
-      router.push(redirectTo);
-      router.refresh();
+      window.location.href = redirectTo;
     }
-  }, [state, router, redirectTo]);
+  }, [state, redirectTo]);
 
   const {
     register,
