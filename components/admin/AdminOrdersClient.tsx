@@ -759,191 +759,202 @@ export default function AdminOrdersClient({
               }
               @page {
                 size: letter portrait;
-                margin: 6mm 8mm;
+                margin: 5mm 8mm;
               }
             }
           ` }} />
 
-          <div id="printable-packing-slip" className="hidden bg-white text-stone-900 p-4 font-sans max-w-4xl mx-auto leading-tight">
-            {/* ENCABEZADO PRINCIPAL DE LA MARCA & DOCUMENTO */}
-            <div className="flex items-center justify-between border-b-2 border-[#72594e] pb-3 mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-[#72594e] text-white flex items-center justify-center font-bold text-xl shadow-xs shrink-0">
-                  🧶
-                </div>
-                <div>
-                  <h1 className="font-headline font-black text-xl text-[#4a3b34] tracking-tight flex items-center gap-2">
-                    <span>YAMGURUMI STUDIO</span>
-                  </h1>
-                  <p className="text-[11px] text-stone-600 font-medium">
-                    Taller Artesanal de Crochet • Amigurumis 100% Hechos a Mano 🇸🇻
-                  </p>
-                </div>
-              </div>
+          {(() => {
+            const isLargeOrder = selectedOrder.items.length > 4;
+            const isHugeOrder = selectedOrder.items.length > 7;
 
-              <div className="text-right space-y-0.5">
-                <span className="inline-block px-2.5 py-0.5 bg-[#72594e] text-white font-extrabold text-[10px] uppercase tracking-widest rounded-[4px]">
-                  HOJA DE EMBALAJE & DESPACHO
-                </span>
-                <h2 className="font-mono font-black text-lg text-stone-900">
-                  #{selectedOrder.id}
-                </h2>
-                <p className="text-[10px] text-stone-500 font-medium">
-                  Emisión: {new Date(selectedOrder.createdAt).toLocaleDateString('es-SV', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                </p>
-              </div>
-            </div>
+            const tablePadding = isHugeOrder ? 'py-1 px-1.5' : isLargeOrder ? 'py-1.5 px-2' : 'p-2';
+            const tableFontSize = isHugeOrder ? 'text-[9.5px]' : isLargeOrder ? 'text-[10px]' : 'text-[11px]';
+            const gapSpacing = isHugeOrder ? 'mb-1.5' : isLargeOrder ? 'mb-2' : 'mb-3';
+            const containerPadding = isHugeOrder ? 'p-2.5' : isLargeOrder ? 'p-3' : 'p-4';
 
-            {/* SECCIÓN DE REMITENTE Y DESTINATARIO (CUADROS PROPORCIONADOS) */}
-            <div className="grid grid-cols-12 gap-3 mb-3 text-xs">
-              {/* REMITENTE */}
-              <div className="col-span-5 border border-stone-200 rounded-[8px] p-2.5 bg-[#faf8f5]/80 space-y-1">
-                <div className="flex items-center justify-between border-b border-stone-200 pb-1 mb-1">
-                  <span className="text-[9px] font-black text-stone-500 uppercase tracking-wider">
-                    REMITENTE (DESPACHO)
-                  </span>
-                  <span className="text-[9px] font-bold text-[#72594e]">Taller Oficial</span>
-                </div>
-                <h3 className="font-bold text-xs text-stone-900">Yamgurumi Studio</h3>
-                <p className="text-[11px] text-stone-600">San Salvador, El Salvador 🇸🇻</p>
-                <p className="text-[11px] text-stone-600 font-mono">Tel / WA: +503 7731 1064</p>
-                <p className="text-[10px] text-stone-500">contacto@yamgurumi.com</p>
-              </div>
+            return (
+              <div id="printable-packing-slip" className={`hidden bg-white text-stone-900 ${containerPadding} font-sans max-w-4xl mx-auto leading-tight`}>
+                {/* ENCABEZADO PRINCIPAL DE LA MARCA & DOCUMENTO */}
+                <div className={`flex items-center justify-between border-b-2 border-[#72594e] pb-2 ${gapSpacing}`}>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-2xl bg-[#72594e] text-white flex items-center justify-center font-bold text-lg shadow-xs shrink-0">
+                      🧶
+                    </div>
+                    <div>
+                      <h1 className="font-headline font-black text-lg text-[#4a3b34] tracking-tight flex items-center gap-2">
+                        <span>YAMGURUMI STUDIO</span>
+                      </h1>
+                      <p className="text-[10px] text-stone-600 font-medium">
+                        Taller Artesanal de Crochet • Amigurumis 100% Hechos a Mano 🇸🇻
+                      </p>
+                    </div>
+                  </div>
 
-              {/* DESTINATARIO (CON RESALTADO) */}
-              <div className="col-span-7 border-2 border-[#72594e] rounded-[8px] p-2.5 bg-white space-y-1 relative">
-                <div className="flex items-center justify-between border-b border-stone-200 pb-1 mb-1">
-                  <span className="text-[9px] font-black text-[#72594e] uppercase tracking-wider">
-                    DESTINATARIO (ENTREGA FINAL)
-                  </span>
-                  {selectedOrder.trackingNumber && (
-                    <span className="text-[9px] font-mono font-bold text-stone-900 bg-stone-100 border border-stone-300 px-1.5 py-0.2 rounded">
-                      Guía: {selectedOrder.trackingNumber}
+                  <div className="text-right space-y-0.5">
+                    <span className="inline-block px-2 py-0.5 bg-[#72594e] text-white font-extrabold text-[9px] uppercase tracking-widest rounded-[4px]">
+                      HOJA DE EMBALAJE & DESPACHO
                     </span>
-                  )}
-                </div>
-
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="font-bold text-sm text-stone-900 leading-snug">
-                      {selectedOrder.user?.name || selectedOrder.email.split('@')[0]}
-                    </h3>
-                    <p className="text-xs font-bold text-[#206776] mt-0.5">
-                      📍 {selectedOrder.zone}
+                    <h2 className="font-mono font-black text-base text-stone-900">
+                      #{selectedOrder.id}
+                    </h2>
+                    <p className="text-[9.5px] text-stone-500 font-medium">
+                      Emisión: {new Date(selectedOrder.createdAt).toLocaleDateString('es-SV', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-[11px] text-stone-700 pt-1">
-                  <p><span className="font-semibold text-stone-500">Teléfono:</span> {selectedOrder.phone}</p>
-                  <p><span className="font-semibold text-stone-500">Correo:</span> {selectedOrder.email}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* TABLA ESTRUCTURADA DE PRODUCTOS COMPRADOS */}
-            <div className="mb-3">
-              <table className="w-full text-left text-xs border border-stone-300 rounded-[6px] overflow-hidden">
-                <thead className="bg-[#4a3b34] text-white font-bold uppercase text-[9px] tracking-wider">
-                  <tr>
-                    <th className="p-2 border-r border-[#5f4c43]">Ítem / Descripción del Producto</th>
-                    <th className="p-2 border-r border-[#5f4c43] text-center w-28">Opción / Tamaño</th>
-                    <th className="p-2 border-r border-[#5f4c43] text-center w-16">Cant.</th>
-                    <th className="p-2 border-r border-[#5f4c43] text-right w-24">Precio Unit.</th>
-                    <th className="p-2 text-right w-24">Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-200 text-[11px]">
-                  {selectedOrder.items.map((item, idx) => (
-                    <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#faf8f5]/50'}>
-                      <td className="p-2 font-bold text-stone-900">
-                        <span>{item.name}</span>
-                      </td>
-                      <td className="p-2 text-center text-stone-600 font-medium">
-                        <span className="inline-block px-1.5 py-0.2 bg-stone-100 rounded text-[10px] border border-stone-200">
-                          {item.size || 'Mediano'}
-                        </span>
-                      </td>
-                      <td className="p-2 text-center font-bold text-stone-900">{item.quantity}</td>
-                      <td className="p-2 text-right font-mono text-stone-700">${item.price.toFixed(2)}</td>
-                      <td className="p-2 text-right font-mono font-bold text-stone-900">${(item.quantity * item.price).toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              {/* RESUMEN DE TOTALES EN CAJA DESTACADA */}
-              <div className="flex justify-end mt-1.5">
-                <div className="w-64 border border-stone-300 rounded-[6px] p-2 bg-[#faf8f5]/80 space-y-1 text-xs">
-                  <div className="flex justify-between text-stone-600 text-[11px]">
-                    <span>Subtotal Productos:</span>
-                    <span className="font-mono font-semibold">${selectedOrder.subtotal.toFixed(2)}</span>
-                  </div>
-
-                  {selectedOrder.discount > 0 && (
-                    <div className="flex justify-between text-emerald-800 text-[11px]">
-                      <span>Descuento ({selectedOrder.discountCode}):</span>
-                      <span className="font-mono font-bold">-${selectedOrder.discount.toFixed(2)}</span>
+                {/* SECCIÓN DE REMITENTE Y DESTINATARIO */}
+                <div className={`grid grid-cols-12 gap-2.5 ${gapSpacing} text-xs`}>
+                  {/* REMITENTE */}
+                  <div className="col-span-5 border border-stone-200 rounded-[6px] p-2 bg-[#faf8f5]/80 space-y-0.5">
+                    <div className="flex items-center justify-between border-b border-stone-200 pb-0.5 mb-0.5">
+                      <span className="text-[8.5px] font-black text-stone-500 uppercase tracking-wider">
+                        REMITENTE (DESPACHO)
+                      </span>
+                      <span className="text-[8.5px] font-bold text-[#72594e]">Taller Oficial</span>
                     </div>
-                  )}
-
-                  <div className="flex justify-between text-stone-600 text-[11px]">
-                    <span>Gastos de Envío:</span>
-                    <span className="font-mono font-semibold text-emerald-700">Incluido / Coordinado</span>
+                    <h3 className="font-bold text-xs text-stone-900">Yamgurumi Studio</h3>
+                    <p className="text-[10px] text-stone-600">San Salvador, El Salvador 🇸🇻</p>
+                    <p className="text-[10px] text-stone-600 font-mono">Tel / WA: +503 7731 1064</p>
                   </div>
 
-                  <div className="flex justify-between pt-1 border-t border-stone-300 font-black text-stone-900 text-xs">
-                    <span>TOTAL A PAGAR:</span>
-                    <span className="font-mono text-sm text-[#72594e]">${selectedOrder.total.toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+                  {/* DESTINATARIO */}
+                  <div className="col-span-7 border-2 border-[#72594e] rounded-[6px] p-2 bg-white space-y-0.5 relative">
+                    <div className="flex items-center justify-between border-b border-stone-200 pb-0.5 mb-0.5">
+                      <span className="text-[8.5px] font-black text-[#72594e] uppercase tracking-wider">
+                        DESTINATARIO (ENTREGA FINAL)
+                      </span>
+                      {selectedOrder.trackingNumber && (
+                        <span className="text-[8.5px] font-mono font-bold text-stone-900 bg-stone-100 border border-stone-300 px-1 py-0.2 rounded">
+                          Guía: {selectedOrder.trackingNumber}
+                        </span>
+                      )}
+                    </div>
 
-            {/* SECCIÓN DE NOTAS Y CONTROL DE CALIDAD (2 COLUMNAS) */}
-            <div className="grid grid-cols-2 gap-3 mb-3 text-[11px]">
-              {/* NOTAS DEL CLIENTE */}
-              <div className="border border-stone-200 rounded-[6px] p-2 bg-stone-50/60">
-                <span className="font-bold text-stone-700 block text-[10px] uppercase tracking-wider mb-0.5">
-                  Notas / Instrucciones del Cliente:
-                </span>
-                <p className="text-stone-600 italic leading-snug">
-                  {selectedOrder.notes ? `"${selectedOrder.notes}"` : 'Sin notas adicionales especificadas.'}
-                </p>
-              </div>
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h3 className="font-bold text-xs text-stone-900 leading-snug">
+                          {selectedOrder.user?.name || selectedOrder.email.split('@')[0]}
+                        </h3>
+                        <p className="text-[11px] font-bold text-[#206776] mt-0.5">
+                          📍 {selectedOrder.zone}
+                        </p>
+                      </div>
+                    </div>
 
-              {/* CONTROL DE CALIDAD Y PACKING */}
-              <div className="border border-stone-200 rounded-[6px] p-2 bg-stone-50/60">
-                <span className="font-bold text-stone-700 block text-[10px] uppercase tracking-wider mb-0.5">
-                  Verificación de Embalaje Taller:
-                </span>
-                <div className="grid grid-cols-1 gap-0.5 text-[10px] text-stone-700 font-medium">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 border border-stone-400 rounded-sm inline-block shrink-0 bg-white" />
-                    <span>Amigurumi inspeccionado (100% algodón e hilos limpios)</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 border border-stone-400 rounded-sm inline-block shrink-0 bg-white" />
-                    <span>Empaque artesanal de protección listo</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 border border-stone-400 rounded-sm inline-block shrink-0 bg-white" />
-                    <span>Guía de transporte adherida al paquete</span>
+                    <div className="grid grid-cols-2 gap-2 text-[10px] text-stone-700 pt-0.5">
+                      <p><span className="font-semibold text-stone-500">Teléfono:</span> {selectedOrder.phone}</p>
+                      <p><span className="font-semibold text-stone-500">Correo:</span> {selectedOrder.email}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* PIE DE PÁGINA DE LA MARCA */}
-            <div className="border-t border-stone-300 pt-2 text-center text-[10px] text-stone-600 space-y-0.5">
-              <p className="font-bold text-[#72594e]">
-                🧶 ¡Gracias por apoyar el trabajo artesanal hecho con amor en El Salvador! ✨
-              </p>
-              <p className="text-stone-400 text-[9px]">
-                Yamgurumi Studio • San Salvador, El Salvador • www.yamgurumi.com • WhatsApp: +503 7731 1064
-              </p>
-            </div>
-          </div>
+                {/* TABLA ESTRUCTURADA DE PRODUCTOS COMPRADOS */}
+                <div className={gapSpacing}>
+                  <table className="w-full text-left border border-stone-300 rounded-[5px] overflow-hidden">
+                    <thead className="bg-[#4a3b34] text-white font-bold uppercase text-[8.5px] tracking-wider">
+                      <tr>
+                        <th className="p-1.5 border-r border-[#5f4c43]">Ítem / Descripción ({selectedOrder.items.length} productos)</th>
+                        <th className="p-1.5 border-r border-[#5f4c43] text-center w-24">Tamaño</th>
+                        <th className="p-1.5 border-r border-[#5f4c43] text-center w-12">Cant.</th>
+                        <th className="p-1.5 border-r border-[#5f4c43] text-right w-20">Precio U.</th>
+                        <th className="p-1.5 text-right w-20">Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody className={`divide-y divide-stone-200 ${tableFontSize}`}>
+                      {selectedOrder.items.map((item, idx) => (
+                        <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#faf8f5]/50'}>
+                          <td className={`${tablePadding} font-bold text-stone-900`}>
+                            <span>{item.name}</span>
+                          </td>
+                          <td className={`${tablePadding} text-center text-stone-600 font-medium`}>
+                            <span className="inline-block px-1 py-0.2 bg-stone-100 rounded text-[9px] border border-stone-200">
+                              {item.size || 'Mediano'}
+                            </span>
+                          </td>
+                          <td className={`${tablePadding} text-center font-bold text-stone-900`}>{item.quantity}</td>
+                          <td className={`${tablePadding} text-right font-mono text-stone-700`}>${item.price.toFixed(2)}</td>
+                          <td className={`${tablePadding} text-right font-mono font-bold text-stone-900`}>${(item.quantity * item.price).toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* RESUMEN DE TOTALES EN CAJA DESTACADA */}
+                  <div className="flex justify-end mt-1">
+                    <div className="w-56 border border-stone-300 rounded-[5px] p-1.5 bg-[#faf8f5]/80 space-y-0.5 text-[10.5px]">
+                      <div className="flex justify-between text-stone-600">
+                        <span>Subtotal:</span>
+                        <span className="font-mono font-semibold">${selectedOrder.subtotal.toFixed(2)}</span>
+                      </div>
+
+                      {selectedOrder.discount > 0 && (
+                        <div className="flex justify-between text-emerald-800">
+                          <span>Descuento ({selectedOrder.discountCode}):</span>
+                          <span className="font-mono font-bold">-${selectedOrder.discount.toFixed(2)}</span>
+                        </div>
+                      )}
+
+                      <div className="flex justify-between text-stone-600">
+                        <span>Envío:</span>
+                        <span className="font-mono font-semibold text-emerald-700">Incluido / Coordinado</span>
+                      </div>
+
+                      <div className="flex justify-between pt-0.5 border-t border-stone-300 font-black text-stone-900 text-[11.5px]">
+                        <span>TOTAL A PAGAR:</span>
+                        <span className="font-mono text-xs text-[#72594e]">${selectedOrder.total.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* NOTAS Y CONTROL DE CALIDAD (2 COLUMNAS) */}
+                <div className={`grid grid-cols-2 gap-2.5 ${gapSpacing} text-[10px]`}>
+                  {/* NOTAS DEL CLIENTE */}
+                  <div className="border border-stone-200 rounded-[5px] p-1.5 bg-stone-50/60">
+                    <span className="font-bold text-stone-700 block text-[9px] uppercase tracking-wider mb-0.5">
+                      Notas del Cliente:
+                    </span>
+                    <p className="text-stone-600 italic leading-tight line-clamp-2">
+                      {selectedOrder.notes ? `"${selectedOrder.notes}"` : 'Sin notas adicionales.'}
+                    </p>
+                  </div>
+
+                  {/* CONTROL DE CALIDAD Y PACKING */}
+                  <div className="border border-stone-200 rounded-[5px] p-1.5 bg-stone-50/60">
+                    <span className="font-bold text-stone-700 block text-[9px] uppercase tracking-wider mb-0.5">
+                      Verificación de Embalaje:
+                    </span>
+                    <div className="grid grid-cols-1 gap-0.5 text-[9px] text-stone-700 font-medium">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 border border-stone-400 rounded-xs inline-block shrink-0 bg-white" />
+                        <span>Amigurumis inspeccionados y limpios</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 border border-stone-400 rounded-xs inline-block shrink-0 bg-white" />
+                        <span>Empaque artesanal de protección listo</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 border border-stone-400 rounded-xs inline-block shrink-0 bg-white" />
+                        <span>Guía de transporte adherida</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* PIE DE PÁGINA DE LA MARCA */}
+                <div className="border-t border-stone-300 pt-1 text-center text-[9.5px] text-stone-600 space-y-0.5">
+                  <p className="font-bold text-[#72594e]">
+                    🧶 ¡Gracias por apoyar el trabajo artesanal hecho con amor en El Salvador! ✨
+                  </p>
+                  <p className="text-stone-400 text-[8.5px]">
+                    Yamgurumi Studio • San Salvador, El Salvador • www.yamgurumi.com • WhatsApp: +503 7731 1064
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
         </>
       )}
     </div>
